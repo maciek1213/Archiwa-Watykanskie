@@ -1,4 +1,4 @@
-package user;
+package pl.agh.edu.libraryapp.user;
 
 import org.springframework.stereotype.Service;
 
