@@ -1,6 +1,5 @@
-package user;
+package pl.agh.edu.libraryapp.user;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,15 +16,14 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<User> createUser(@RequestBody UserDTO user) {
-        User newUser = userService.createUser(
-            user.getFirstName(),
-            user.getLastName(),
-            user.getEmail(),
-            user.getPhoneNumber()
-        );
-
-        return  new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody User user) {
+        try {
+            userService.addUser(user);
+            return ResponseEntity.ok("User registered");
+        } catch (UserAlreadyExistsException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
+
 }
