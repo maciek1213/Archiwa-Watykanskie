@@ -1,4 +1,4 @@
-package user;
+package pl.agh.edu.libraryapp.user;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
