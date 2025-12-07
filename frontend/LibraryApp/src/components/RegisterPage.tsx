@@ -33,6 +33,7 @@ export function RegisterPage({ onLogin }: Props) {
 
         if (formData.password != formData.confirmPassword) {
             setError("passwords do not match");
+            console.log("passwords do not match")
             return;
         }
 
@@ -40,14 +41,35 @@ export function RegisterPage({ onLogin }: Props) {
 
         try {
             const response = await axios.post('http://localhost:8080/user/register', payload)
+            alert("Registration successful");
+
         } catch (e) {
-            setError("An error occured during registration")
+            if (axios.isAxiosError(e) && e.response) {
+                const errorMessage = e.response.data.message || e.response.data || "Unknown server error (400)";
+                setError(`Registration failed: ${errorMessage}`);
+                console.error("Server Response Data:", e.response.data);
+            } else {
+                setError("An error occured during registration");
+                console.error(e);
+            }
         }
     }
 
     return (
         <>
             <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label>First name</label>
+                    <input
+                        name="username"
+                        type="text"
+                        className="form-control"
+                        id="InputUsername"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="Enter username"
+                    />
+                </div>
                 <div className="form-group">
                     <label>First name</label>
                     <input
