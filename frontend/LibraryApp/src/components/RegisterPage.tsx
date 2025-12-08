@@ -59,7 +59,7 @@ export function RegisterPage({ onLogin }: Props) {
         <>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label>First name</label>
+                    <label>Username</label>
                     <input
                         name="username"
                         type="text"
