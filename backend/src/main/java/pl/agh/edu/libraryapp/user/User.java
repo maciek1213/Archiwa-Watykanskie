@@ -5,67 +5,98 @@ import pl.agh.edu.libraryapp.book.Rentals;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
 
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
+    @NotNull(message = "username is required")
+    private String username;
+
+
+    @Setter
+    @NotNull(message = "password is required")
+    private String password;
+
+    @Getter
+    @Setter
     @NotNull(message = "first name is required")
     private String firstName;
 
+    @Getter
+    @Setter
     @NotNull(message = "last name is required")
     private String lastName;
 
+
+    @Getter
+    @Setter
     @Email
     @Column(unique = true)
     @NotNull(message = "email name is required")
     private String email;
 
+    @Getter
+    @Setter
     @NotNull(message = "phone number is required")
     @Column(unique = true)
     private String phoneNumber;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
-    private Role role;
+    private Set<Role> roles;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.toString()))
+                .collect(Collectors.toList());
+    }
 
     @OneToMany(mappedBy = "user")
     private Set<Rentals> rentals = new HashSet<>();
+    @Override
+    public String getPassword() {
+        return password;
+    }
 
     @OneToMany(mappedBy = "user")
     private Set<BookQueue> BookQueues = new HashSet<>();
+    @Override
+    public String getUsername() {
+        return username;
+    }
 
     public User(){}
 
-    public User(String firstName, String lastName, String email, String phoneNumber) {
+    public User(String username, String firstName, String lastName, String email, String phoneNumber) {
+        this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        }
+
+    public void addRole(Role role) {
+        roles.add(role);
     }
 
-    //settery i gettery
-    public Long getId() {return id;}
-    public void setId(Long id) {this.id = id;}
-    public String getFirstName() {return firstName;}
-    public void setFirstName(String firstName) {this.firstName = firstName;}
-    public String getLastName() {return lastName;}
-    public void setLastName(String lastName) {this.lastName = lastName;}
-    public String getEmail() {return email;}
-    public void setEmail(String email) {this.email = email;}
-    public String getPhoneNumber() {return phoneNumber;}
-    public void setPhoneNumber(String phoneNumber) {this.phoneNumber = phoneNumber;}
-    public Role getRole() {return role;}
-    public void setRole(Role role) {this.role = role;}
-    public Set<Rentals> getRentals() {return rentals;}
-    public void setRentals(Set<Rentals> rentals) {this.rentals = rentals;}
-    public Set<BookQueue> getBookQueues() {return BookQueues;}
-    public void setBookQueues(Set<BookQueue> bookQueues) {BookQueues = bookQueues;}
+    public void removeRole(Role role) {
+        roles.remove(role);
+    }
 }

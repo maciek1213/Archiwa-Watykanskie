@@ -1,9 +1,8 @@
 spring.application.name=LibraryApp
 
-
 spring.datasource.url=jdbc:postgresql://localhost:5432/library
 spring.datasource.username=postgres
-spring.datasource.password=PASSWORD
+spring.datasource.password=YOUR_PASSWORD
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # Hibernate
@@ -15,3 +14,7 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 spring.thymeleaf.cache=false
 spring.thymeleaf.prefix=classpath:/templates/
 spring.thymeleaf.suffix=.html
+
+#JWT
+jwt.secret=SECRET
+jwt.expiration=360000
