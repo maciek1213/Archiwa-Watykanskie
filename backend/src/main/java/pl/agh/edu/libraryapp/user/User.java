@@ -3,6 +3,8 @@ package pl.agh.edu.libraryapp.user;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,77 +18,45 @@ import java.util.stream.Collectors;
 @Table(name = "users")
 public class User implements UserDetails {
 
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @NotNull(message = "username is required")
     private String username;
 
 
+    @Setter
     @NotNull(message = "password is required")
     private String password;
 
+    @Getter
+    @Setter
     @NotNull(message = "first name is required")
     private String firstName;
 
+    @Getter
+    @Setter
     @NotNull(message = "last name is required")
     private String lastName;
 
-    private Set<Role> roles = new HashSet<Role>();
+    private Set<Role> roles = new HashSet<>();
 
+    @Getter
+    @Setter
     @Email
     @Column(unique = true)
     @NotNull(message = "email name is required")
     private String email;
 
+    @Getter
+    @Setter
     @NotNull(message = "phone number is required")
     @Column(unique = true)
     private String phoneNumber;
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public Long getId() {
-        return id;
-    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
