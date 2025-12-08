@@ -1,5 +1,7 @@
 package pl.agh.edu.libraryapp.user;
 
+import pl.agh.edu.libraryapp.book.BookQueue;
+import pl.agh.edu.libraryapp.book.Rentals;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -42,7 +44,6 @@ public class User implements UserDetails {
     @NotNull(message = "last name is required")
     private String lastName;
 
-    private Set<Role> roles = new HashSet<>();
 
     @Getter
     @Setter
@@ -57,6 +58,9 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String phoneNumber;
 
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id")
+    private Set<Role> roles;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
@@ -64,15 +68,29 @@ public class User implements UserDetails {
                 .collect(Collectors.toList());
     }
 
+    @OneToMany(mappedBy = "user")
+    private Set<Rentals> rentals = new HashSet<>();
     @Override
     public String getPassword() {
         return password;
     }
 
+    @OneToMany(mappedBy = "user")
+    private Set<BookQueue> BookQueues = new HashSet<>();
     @Override
     public String getUsername() {
         return username;
     }
+
+    public User(){}
+
+    public User(String username, String firstName, String lastName, String email, String phoneNumber) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        }
 
     public void addRole(Role role) {
         roles.add(role);
