@@ -14,13 +14,16 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "isbn is required")
+    private Integer isbn;
+
     @NotNull(message = "title is required")
     private String title;
 
     @NotNull(message = "author is required")
     private String author;
 
-    @NotNull(message = "author is required")
+    @NotNull(message = "count is required")
     private Integer count;
 
     //tworzenie tabeli pośredniej między book i category
@@ -41,7 +44,8 @@ public class Book {
 
     public Book() {}
 
-    public Book(String title, String author, Integer count) {
+    public Book(Integer isbn, String title, String author, Integer count) {
+        this.isbn = isbn;
         this.title = title;
         this.author = author;
         this.count = count;
@@ -62,4 +66,6 @@ public class Book {
     public void setBookItems(Set<BookItem> bookItems) {this.bookItems = bookItems;}
     public Set<BookQueue> getBookQueues() {return bookQueues;}
     public void setBookQueues(Set<BookQueue> bookQueues) {this.bookQueues = bookQueues;}
+    public Integer getIsbn() {return isbn;}
+    public void setIsbn(Integer isbn) {this.isbn = isbn;}
 }

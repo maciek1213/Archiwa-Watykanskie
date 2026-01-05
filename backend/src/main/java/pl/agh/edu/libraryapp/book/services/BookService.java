@@ -1,5 +1,7 @@
 package pl.agh.edu.libraryapp.book.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
@@ -8,6 +10,8 @@ import pl.agh.edu.libraryapp.book.repositories.BookRepository;
 import pl.agh.edu.libraryapp.book.repositories.CategoryRepository;
 import pl.agh.edu.libraryapp.book.exceptions.BookNotFoundException;
 import pl.agh.edu.libraryapp.book.exceptions.BookNotAvailableException;
+import pl.agh.edu.libraryapp.dto.BookInDto;
+import pl.agh.edu.libraryapp.dto.BookOutDto;
 
 import java.util.List;
 import java.util.Set;
@@ -24,6 +28,8 @@ public class BookService {
         this.categoryRepository = categoryRepository;
     }
 
+
+    //todo - dodać walidację niepowtarzalnosci ksiazek
     public Book createBook(Book book) {
         return bookRepository.save(book);
     }
@@ -43,6 +49,16 @@ public class BookService {
         book.setAuthor(bookDetails.getAuthor());
         book.setCount(bookDetails.getCount());
         return bookRepository.save(book);
+    }
+
+    public BookOutDto asOutDto(Book book) {
+        return new BookOutDto(
+                book.getId(),
+                book.getIsbn(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getCount()
+        );
     }
 
     public void deleteBook(Long id) {
@@ -92,5 +108,14 @@ public class BookService {
         Book book = getBookById(bookId);
         book.setCount(book.getCount() + 1);
         bookRepository.save(book);
+    }
+
+    public Long createBookFromDto(BookInDto dto) {
+        Book book = new Book(dto.isbn(), dto.title(), dto.author(), dto.count());
+        return createBook(book).getId();
+    }
+
+    public Page<Book> getBooks(Pageable pageable) {
+        return bookRepository.findAll(pageable);
     }
 }
