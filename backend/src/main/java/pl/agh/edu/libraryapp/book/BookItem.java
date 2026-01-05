@@ -13,9 +13,6 @@ public class BookItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "isbn is required")
-    private Integer isbn;
-
     @NotNull(message = "author is required")
     private String author;
 
@@ -32,8 +29,7 @@ public class BookItem {
 
     public BookItem() {}
 
-    public BookItem(Integer isbn, String author, Boolean isAvailable) {
-        this.isbn = isbn;
+    public BookItem(String author, Boolean isAvailable) {
         this.author = author;
         this.isAvailable = isAvailable;
     }
