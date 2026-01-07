@@ -1,9 +1,9 @@
 package pl.agh.edu.libraryapp.book;
 
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,6 +18,7 @@ public class Category {
     private String name;
 
     @ManyToMany(mappedBy = "categories")
+    @JsonIgnoreProperties("categories")
     private Set<Book> books = new HashSet<>();
 
     public Category() {}
@@ -26,11 +27,10 @@ public class Category {
         this.name = name;
     }
 
-    //gettery i settery
-    public Long getId() {return id;}
-    public void setId(Long id) {this.id = id;}
-    public String getName() {return name;}
-    public void setName(String name) {this.name = name;}
-    public Set<Book> getBooks() {return books;}
-    public void setBooks(Set<Book> books) {this.books = books;}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public Set<Book> getBooks() { return books; }
+    public void setBooks(Set<Book> books) { this.books = books; }
 }

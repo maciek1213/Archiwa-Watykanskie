@@ -14,7 +14,6 @@ import java.util.List;
 @Service
 @Transactional
 public class BookItemService {
-
     private final BookItemRepository bookItemRepository;
     private final BookRepository bookRepository;
 
@@ -25,21 +24,24 @@ public class BookItemService {
 
     public BookItem createBookItem(Long bookId, BookItem bookItem) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException("Book not found with id: " + bookId));
-
+                .orElseThrow(() -> new BookNotFoundException("Book not found"));
         bookItem.setBook(book);
-        bookItem.setIsAvailable(true);
-
         return bookItemRepository.save(bookItem);
+    }
+
+    public BookItem updateBookItem(Long itemId, BookItem details) {
+        BookItem item = bookItemRepository.findById(itemId)
+                .orElseThrow(() -> new BookItemNotFoundException("Egzemplarz o podanym ID nie istnieje"));
+
+        item.setIsbn(details.getIsbn());
+        item.setIsAvailable(details.getIsAvailable());
+
+        return bookItemRepository.save(item);
     }
 
     public BookItem getBookItemById(Long id) {
         return bookItemRepository.findById(id)
-                .orElseThrow(() -> new BookItemNotFoundException("BookItem not found with id: " + id));
-    }
-
-    public List<BookItem> getAllBookItems() {
-        return bookItemRepository.findAll();
+                .orElseThrow(() -> new BookItemNotFoundException("BookItem not found"));
     }
 
     public List<BookItem> getBookItemsByBook(Long bookId) {
@@ -48,21 +50,25 @@ public class BookItemService {
         return bookItemRepository.findByBook(book);
     }
 
+    public void deleteBookItem(Long id) {
+        BookItem bookItem = getBookItemById(id);
+        bookItemRepository.delete(bookItem);
+    }
+
+    public BookItem updateBookItemStatus(Long id, Boolean isAvailable) {
+        BookItem item = getBookItemById(id);
+        item.setIsAvailable(isAvailable);
+        return bookItemRepository.save(item);
+    }
+
+    public List<BookItem> getAllBookItems() {
+        return bookItemRepository.findAll();
+    }
+
     public List<BookItem> getAvailableBookItemsByBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException("Book not found"));
         return bookItemRepository.findByBookAndIsAvailableTrue(book);
-    }
-
-    public BookItem updateBookItemStatus(Long bookItemId, Boolean isAvailable) {
-        BookItem bookItem = getBookItemById(bookItemId);
-        bookItem.setIsAvailable(isAvailable);
-        return bookItemRepository.save(bookItem);
-    }
-
-    public void deleteBookItem(Long id) {
-        BookItem bookItem = getBookItemById(id);
-        bookItemRepository.delete(bookItem);
     }
 
     public BookItem markAsRented(Long bookItemId) {
