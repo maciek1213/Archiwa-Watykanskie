@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.book.Rentals;
 import pl.agh.edu.libraryapp.user.User;
+import pl.agh.edu.libraryapp.user.UserService;
 
 import java.util.List;
 
@@ -15,9 +16,11 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final UserService userService;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository, UserService userService) {
         this.notificationRepository = notificationRepository;
+        this.userService = userService;
     }
 
     private void save(User user, String title, String message) {

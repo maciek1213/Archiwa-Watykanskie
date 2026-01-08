@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Dispatch, SetStateAction } from "react";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 interface Props {
   token: string | null;
@@ -37,7 +38,7 @@ export function Navbar({ token, setToken }: Props) {
           </button>
         </div>
 
-        <div className="navbar-right">
+        <div className="navbar-right d-flex align-items-center">
           {!token ? (
             <>
               <button
@@ -55,7 +56,9 @@ export function Navbar({ token, setToken }: Props) {
               </button>
             </>
           ) : (
-            <>
+<>
+              <NotificationDropdown token={token} />
+
               <button
                 className="btn btn-outline"
                 onClick={() => navigate("/profile")}
