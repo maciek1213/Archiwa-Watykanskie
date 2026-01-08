@@ -74,4 +74,12 @@ public class NotificationService {
     public List<Notification> getNotifications(Long userId) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
+
+    public List<Notification> getNewNotifications(Long userId) {
+        return notificationRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, NotificationStatus.NEW);
+    }
+
+    public NotificationDto toDto(Notification notification) {
+        return new NotificationDto(notification.getId() ,notification.getTitle(), notification.getMessage());
+    }
 }
