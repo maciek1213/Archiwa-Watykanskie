@@ -72,4 +72,9 @@ public class BookController {
         BookItem updatedItem = bookItemService.updateBookItem(itemId, bookItemDetails);
         return ResponseEntity.ok(updatedItem);
     }
+
+    @GetMapping("/{bookId}")
+    public Book getBook(@PathVariable Long bookId) {
+        return bookService.getBookById(bookId);
+    }
 }
