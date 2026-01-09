@@ -6,6 +6,7 @@ import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.book.BookQueue;
 import pl.agh.edu.libraryapp.book.repositories.BookQueueRepository;
 import pl.agh.edu.libraryapp.book.exceptions.QueueNotFoundException;
+import pl.agh.edu.libraryapp.notifications.NotificationService;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserRepository;
 
@@ -18,12 +19,14 @@ public class BookQueueService {
     private final BookQueueRepository bookQueueRepository;
     private final BookService bookService;
     private final UserRepository userRepository;
+    private final NotificationService  notificationService;
 
     public BookQueueService(BookQueueRepository bookQueueRepository, BookService bookService,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,  NotificationService notificationService) {
         this.bookQueueRepository = bookQueueRepository;
         this.bookService = bookService;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public BookQueue addToQueue(Long userId, Long bookId) {
@@ -93,13 +96,17 @@ public class BookQueueService {
         return -1; // Not in queue
     }
 
+    @Transactional
     public void notifyAvailableBook(Long bookId) {
         BookQueue nextInLine = processNextInQueue(bookId);
         if (nextInLine != null) {
-            // Here you would implement actual notification logic
-            // e.g., send email, push notification, etc.
-            System.out.println("Notifying user: " + nextInLine.getUser().getEmail() +
-                    " that book '" + nextInLine.getBook().getTitle() + "' is available");
+            // Wysyłaj rzeczywiste powiadomienie
+            notificationService.addBookAvailableNotification(
+                    nextInLine.getUser(),
+                    nextInLine.getBook()
+            );
+            // Usuń z kolejki po powiadomieniu
+            removeFromQueue(nextInLine.getId());
         }
     }
 }

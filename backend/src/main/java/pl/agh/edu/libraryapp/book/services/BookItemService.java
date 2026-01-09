@@ -16,10 +16,12 @@ import java.util.List;
 public class BookItemService {
     private final BookItemRepository bookItemRepository;
     private final BookRepository bookRepository;
+    private final BookService bookService;
 
-    public BookItemService(BookItemRepository bookItemRepository, BookRepository bookRepository) {
+    public BookItemService(BookItemRepository bookItemRepository, BookRepository bookRepository,  BookService bookService) {
         this.bookItemRepository = bookItemRepository;
         this.bookRepository = bookRepository;
+        this.bookService = bookService;
     }
 
     public BookItem createBookItem(Long bookId, BookItem bookItem) {
@@ -71,12 +73,18 @@ public class BookItemService {
         return bookItemRepository.findByBookAndIsAvailableTrue(book);
     }
 
+    @Transactional
     public BookItem markAsRented(Long bookItemId) {
-        return updateBookItemStatus(bookItemId, false);
+        BookItem item = updateBookItemStatus(bookItemId, false);
+        bookService.decrementBookCount(item.getBook().getId());
+        return item;
     }
 
+    @Transactional
     public BookItem markAsAvailable(Long bookItemId) {
-        return updateBookItemStatus(bookItemId, true);
+        BookItem item = updateBookItemStatus(bookItemId, true);
+        bookService.incrementBookCount(item.getBook().getId());
+        return item;
     }
 
     public boolean isBookItemAvailable(Long bookItemId) {
