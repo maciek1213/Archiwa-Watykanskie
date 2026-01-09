@@ -1,6 +1,7 @@
 package pl.agh.edu.libraryapp.book;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ public class BookItem {
     private Boolean isAvailable = true;
 
     @OneToMany(mappedBy = "bookItem", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Rentals> rentals = new HashSet<>();
 
     public BookItem() {}

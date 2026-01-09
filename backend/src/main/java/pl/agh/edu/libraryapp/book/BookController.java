@@ -5,7 +5,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.agh.edu.libraryapp.book.services.BookItemService;
 import pl.agh.edu.libraryapp.book.services.BookService;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/book")
@@ -20,8 +22,10 @@ public class BookController {
     }
 
     @GetMapping
-    public List<Book> getAllBooks() {
-        return bookService.getAllBooks();
+    public List<BookResponseDTO> getAllBooks() {
+        return bookService.getAllBooks().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     @PostMapping
@@ -74,7 +78,18 @@ public class BookController {
     }
 
     @GetMapping("/{bookId}")
-    public Book getBook(@PathVariable Long bookId) {
-        return bookService.getBookById(bookId);
+    public BookResponseDTO getBook(@PathVariable Long bookId) {
+        Book book = bookService.getBookById(bookId);
+        return convertToDTO(book);
+    }
+
+    private BookResponseDTO convertToDTO(Book book) {
+        BookResponseDTO dto = new BookResponseDTO();
+        dto.setId(book.getId());
+        dto.setTitle(book.getTitle());
+        dto.setAuthor(book.getAuthor());
+        dto.setCount(book.getCount());
+        dto.setCategories(book.getCategories());
+        return dto;
     }
 }
