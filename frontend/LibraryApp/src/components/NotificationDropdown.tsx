@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import bellIcon from "../assets/bell.png";
+import { useNavigate } from "react-router-dom";
 
 interface NotificationDto {
   id: number;
@@ -14,6 +15,7 @@ interface Props {
 export function NotificationDropdown({ token }: Props) {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [show, setShow] = useState(false);
+  const navigate = useNavigate();
 
   const fetchNotifications = async () => {
     try {
@@ -100,6 +102,18 @@ export function NotificationDropdown({ token }: Props) {
               </li>
             ))
           )}
+          <li className="border-top border-secondary mt-1">
+            <button 
+              className="dropdown-item text-center text-primary py-2"
+              style={{ fontSize: "0.85rem", fontWeight: "bold" }}
+              onClick={() => {
+                setShow(false);
+                navigate("/notifications");
+              }}
+            >
+              Zobacz wszystkie
+            </button>
+          </li>
         </ul>
       )}
     </div>

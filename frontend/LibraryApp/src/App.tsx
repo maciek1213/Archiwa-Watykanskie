@@ -11,6 +11,7 @@ import { HomePage } from "./components/HomePage.tsx";
 import { Navbar } from "./components/Navbar.tsx";
 import { ProfilePage } from "./components/ProfilePage.tsx";
 import { useEffect, useState } from "react";
+import { NotificationsPage } from "./components/NotificationsPage.tsx";
 
 function ProtectedRoute({
   token,
@@ -86,6 +87,14 @@ function App() {
               element={
                 <ProtectedRoute token={token}>
                   <ProfilePage token={token} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={"/notifications"}
+              element={
+                <ProtectedRoute token={token}>
+                  <NotificationsPage token={token} />
                 </ProtectedRoute>
               }
             />
