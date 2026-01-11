@@ -21,15 +21,13 @@ public class RentalsService {
     private final BookItemService bookItemService;
     private final BookService bookService;
     private final UserRepository userRepository;
-    private final BookQueueService bookQueueService;
 
     public RentalsService(RentalsRepository rentalRepository, BookItemService bookItemService,
-                         BookService bookService, UserRepository userRepository,  BookQueueService bookQueueService) {
+                         BookService bookService, UserRepository userRepository) {
         this.rentalRepository = rentalRepository;
         this.bookItemService = bookItemService;
         this.bookService = bookService;
         this.userRepository = userRepository;
-        this.bookQueueService = bookQueueService;
     }
 
     public Rentals rentBook(Long userId, Long bookItemId) {
@@ -51,28 +49,29 @@ public class RentalsService {
         rental.setStartDate(LocalDate.now());
         rental.setEndDate(LocalDate.now().plusWeeks(2)); // 2 weeks rental period
 
-
+        // Update book item status
         bookItemService.markAsRented(bookItemId);
+
+        // Decrement book count
+        bookService.decrementBookCount(bookItem.getBook().getId());
 
         return rentalRepository.save(rental);
     }
 
-    @Transactional
     public Rentals returnBook(Long rentalId) {
         Rentals rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException("Rental not found"));
 
-        Long bookId = rental.getBookItem().getBook().getId();
-
         rental.setStatus("RETURNED");
         rental.setEndDate(LocalDate.now());
-        rentalRepository.save(rental);
 
+        // Update book item status
         bookItemService.markAsAvailable(rental.getBookItem().getId());
 
-        bookQueueService.notifyAvailableBook(bookId);
+        // Increment book count
+        bookService.incrementBookCount(rental.getBookItem().getBook().getId());
 
-        return rental;
+        return rentalRepository.save(rental);
     }
 
     public Rentals extendRental(Long rentalId, int additionalDays) {

@@ -15,6 +15,4 @@ public interface RentalsRepository extends JpaRepository<Rentals, Long> {
 
     @Query("SELECT r FROM Rentals r WHERE r.status = 'ACTIVE' AND r.endDate < :currentDate")
     List<Rentals> findOverdueRentals(@Param("currentDate") LocalDate currentDate);
-
-    List<Rentals> findByStatusAndEndDate(String status ,LocalDate soon);
 }

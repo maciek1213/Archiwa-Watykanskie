@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { isAdmin, getUserId } from "../utils/tokenUtils.ts";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { BookManagement } from "./BookManagement.tsx";
 
 interface UserData {
   id: number;
@@ -518,9 +517,6 @@ export function ProfilePage({ token }: Props) {
               )}
             </div>
           )}
-            <div>
-                {adminUser && <BookManagement token={effectiveToken} />}
-            </div>
         </>
       )}
     </div>
