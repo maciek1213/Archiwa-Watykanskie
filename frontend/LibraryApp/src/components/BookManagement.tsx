@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 
 interface Category {
@@ -24,7 +24,7 @@ interface Props {
     token: string | null;
 }
 
-export function BookManagement({ token }: Props) {
+export function BookManagement({token}: Props) {
     const [books, setBooks] = useState<Book[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -130,9 +130,13 @@ export function BookManagement({ token }: Props) {
                 title: bookFormData.title,
                 author: bookFormData.author,
                 count: bookFormData.count,
-                categories: bookFormData.categoryIds.map(id => ({ id })),
+                categories: bookFormData.categoryIds.map(id => {
+                    const category = categories.find(c => c.id === id);
+                    return category ? {id: category.id, name: category.name} : null;
+                }).filter(Boolean),
             };
 
+            console.log(bookData)
             await axios.post("http://localhost:8080/book", bookData, {
                 headers: {
                     Authorization: `Bearer ${effectiveToken}`,
@@ -140,7 +144,7 @@ export function BookManagement({ token }: Props) {
             });
 
             setIsAddingBook(false);
-            setBookFormData({ title: "", author: "", count: 0, categoryIds: [] });
+            setBookFormData({title: "", author: "", count: 0, categoryIds: []});
             fetchBooks();
         } catch (err) {
             setBookFormError("Nie udało się dodać książki");
@@ -157,7 +161,7 @@ export function BookManagement({ token }: Props) {
                 title: bookFormData.title,
                 author: bookFormData.author,
                 count: bookFormData.count,
-                categories: bookFormData.categoryIds.map(id => ({ id })),
+                categories: bookFormData.categoryIds.map(id => ({id})),
             };
 
             await axios.put(
@@ -171,7 +175,7 @@ export function BookManagement({ token }: Props) {
             );
 
             setEditingBookId(null);
-            setBookFormData({ title: "", author: "", count: 0, categoryIds: [] });
+            setBookFormData({title: "", author: "", count: 0, categoryIds: []});
             fetchBooks();
         } catch (err) {
             setBookFormError("Nie udało się zaktualizować książki");
@@ -211,7 +215,7 @@ export function BookManagement({ token }: Props) {
     const cancelBookForm = () => {
         setIsAddingBook(false);
         setEditingBookId(null);
-        setBookFormData({ title: "", author: "", count: 0, categoryIds: [] });
+        setBookFormData({title: "", author: "", count: 0, categoryIds: []});
         setBookFormError(null);
     };
 
@@ -239,7 +243,7 @@ export function BookManagement({ token }: Props) {
             });
 
             setIsAddingCategory(false);
-            setCategoryFormData({ name: "" });
+            setCategoryFormData({name: ""});
             fetchCategories();
         } catch (err: any) {
             setCategoryFormError(err.response?.data || "Nie udało się dodać kategorii");
@@ -262,7 +266,7 @@ export function BookManagement({ token }: Props) {
             );
 
             setEditingCategoryId(null);
-            setCategoryFormData({ name: "" });
+            setCategoryFormData({name: ""});
             fetchCategories();
             fetchBooks();
         } catch (err: any) {
@@ -288,14 +292,14 @@ export function BookManagement({ token }: Props) {
 
     const startEditCategory = (category: Category) => {
         setEditingCategoryId(category.id);
-        setCategoryFormData({ name: category.name });
+        setCategoryFormData({name: category.name});
         setIsAddingCategory(false);
     };
 
     const cancelCategoryForm = () => {
         setEditingCategoryId(null);
         setIsAddingCategory(false);
-        setCategoryFormData({ name: "" });
+        setCategoryFormData({name: ""});
         setCategoryFormError(null);
     };
 
@@ -320,7 +324,7 @@ export function BookManagement({ token }: Props) {
             );
 
             setIsAddingItem(false);
-            setItemFormData({ isbn: "", isAvailable: true });
+            setItemFormData({isbn: "", isAvailable: true});
 
             fetchBookItems(selectedBookId);
             fetchBooks();
@@ -345,7 +349,7 @@ export function BookManagement({ token }: Props) {
             );
 
             setEditingItemId(null);
-            setItemFormData({ isbn: "", isAvailable: true });
+            setItemFormData({isbn: "", isAvailable: true});
             if (selectedBookId) fetchBookItems(selectedBookId);
         } catch (err) {
             setItemFormError("Nie udało się zaktualizować egzemplarza");
@@ -380,7 +384,7 @@ export function BookManagement({ token }: Props) {
     const cancelItemForm = () => {
         setIsAddingItem(false);
         setEditingItemId(null);
-        setItemFormData({ isbn: "", isAvailable: true });
+        setItemFormData({isbn: "", isAvailable: true});
         setItemFormError(null);
     };
 
@@ -390,11 +394,11 @@ export function BookManagement({ token }: Props) {
     };
 
     return (
-        <div className="profile-card" style={{ marginTop: "2rem" }}>
+        <div className="profile-card" style={{marginTop: "2rem"}}>
             <h3>Zarządzanie Książkami</h3>
 
             {error && (
-                <div style={{ color: "#ff6b6b", marginBottom: "1rem" }}>{error}</div>
+                <div style={{color: "#ff6b6b", marginBottom: "1rem"}}>{error}</div>
             )}
 
             {/* Formularz dodawania/edycji książki */}
@@ -410,7 +414,7 @@ export function BookManagement({ token }: Props) {
                 >
                     <h4>{editingBookId ? "Edytuj książkę" : "Dodaj książkę"}</h4>
                     {bookFormError && (
-                        <div style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
+                        <div style={{color: "#ff6b6b", marginBottom: "0.5rem"}}>
                             {bookFormError}
                         </div>
                     )}
@@ -421,7 +425,7 @@ export function BookManagement({ token }: Props) {
                             className="form-control"
                             value={bookFormData.title}
                             onChange={(e) =>
-                                setBookFormData({ ...bookFormData, title: e.target.value })
+                                setBookFormData({...bookFormData, title: e.target.value})
                             }
                         />
                     </div>
@@ -432,7 +436,7 @@ export function BookManagement({ token }: Props) {
                             className="form-control"
                             value={bookFormData.author}
                             onChange={(e) =>
-                                setBookFormData({ ...bookFormData, author: e.target.value })
+                                setBookFormData({...bookFormData, author: e.target.value})
                             }
                         />
                     </div>
@@ -440,7 +444,7 @@ export function BookManagement({ token }: Props) {
                     {/* Wybór kategorii */}
                     <div className="form-group">
                         <label>Kategorie</label>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+                        <div style={{display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem"}}>
                             {categories.map((category) => (
                                 <label
                                     key={category.id}
@@ -465,20 +469,20 @@ export function BookManagement({ token }: Props) {
                                         type="checkbox"
                                         checked={bookFormData.categoryIds.includes(category.id)}
                                         onChange={() => toggleCategory(category.id)}
-                                        style={{ display: "none" }}
+                                        style={{display: "none"}}
                                     />
                                     {category.name}
                                 </label>
                             ))}
                             {categories.length === 0 && (
-                                <span style={{ color: "#999", fontStyle: "italic" }}>
+                                <span style={{color: "#999", fontStyle: "italic"}}>
                                     Brak dostępnych kategorii. Dodaj kategorie poniżej.
                                 </span>
                             )}
                         </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+                    <div style={{display: "flex", gap: "0.5rem", marginTop: "1rem"}}>
                         <button
                             className="btn btn-primary"
                             onClick={editingBookId ? handleUpdateBook : handleAddBook}
@@ -495,7 +499,7 @@ export function BookManagement({ token }: Props) {
             <button
                 className="btn btn-primary"
                 onClick={() => setIsAddingBook(true)}
-                style={{ marginBottom: "1rem" }}
+                style={{marginBottom: "1rem"}}
                 disabled={isAddingBook || editingBookId !== null}
             >
                 + Dodaj nową książkę
@@ -505,8 +509,8 @@ export function BookManagement({ token }: Props) {
             {loading ? (
                 <p>Ładowanie książek...</p>
             ) : (
-                <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <div style={{overflowX: "auto"}}>
+                    <table style={{width: "100%", borderCollapse: "collapse"}}>
                         <thead>
                         <tr
                             style={{
@@ -514,12 +518,12 @@ export function BookManagement({ token }: Props) {
                                 borderBottom: "2px solid var(--border-color)",
                             }}
                         >
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>ID</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Tytuł</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Autor</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Kategorie</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Liczba egzemplarzy</th>
-                            <th style={{ padding: "0.75rem", textAlign: "center" }}>Akcje</th>
+                            <th style={{padding: "0.75rem", textAlign: "left"}}>ID</th>
+                            <th style={{padding: "0.75rem", textAlign: "left"}}>Tytuł</th>
+                            <th style={{padding: "0.75rem", textAlign: "left"}}>Autor</th>
+                            <th style={{padding: "0.75rem", textAlign: "left"}}>Kategorie</th>
+                            <th style={{padding: "0.75rem", textAlign: "left"}}>Liczba egzemplarzy</th>
+                            <th style={{padding: "0.75rem", textAlign: "center"}}>Akcje</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -530,12 +534,12 @@ export function BookManagement({ token }: Props) {
                                     borderBottom: "1px solid var(--border-color)",
                                 }}
                             >
-                                <td style={{ padding: "0.75rem" }}>{book.id}</td>
-                                <td style={{ padding: "0.75rem" }}>{book.title}</td>
-                                <td style={{ padding: "0.75rem" }}>{book.author}</td>
-                                <td style={{ padding: "0.75rem" }}>
+                                <td style={{padding: "0.75rem"}}>{book.id}</td>
+                                <td style={{padding: "0.75rem"}}>{book.title}</td>
+                                <td style={{padding: "0.75rem"}}>{book.author}</td>
+                                <td style={{padding: "0.75rem"}}>
                                     {book.categories && book.categories.length > 0 ? (
-                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                                        <div style={{display: "flex", flexWrap: "wrap", gap: "0.25rem"}}>
                                             {book.categories.map((category) => (
                                                 <span
                                                     key={category.id}
@@ -553,11 +557,11 @@ export function BookManagement({ token }: Props) {
                                             ))}
                                         </div>
                                     ) : (
-                                        <span style={{ color: "#999", fontStyle: "italic" }}>Brak</span>
+                                        <span style={{color: "#999", fontStyle: "italic"}}>Brak</span>
                                     )}
                                 </td>
-                                <td style={{ padding: "0.75rem" }}>{book.count}</td>
-                                <td style={{ padding: "0.75rem", textAlign: "center" }}>
+                                <td style={{padding: "0.75rem"}}>{book.count}</td>
+                                <td style={{padding: "0.75rem", textAlign: "center"}}>
                                     <div
                                         style={{
                                             display: "flex",
@@ -569,21 +573,21 @@ export function BookManagement({ token }: Props) {
                                         <button
                                             className="btn btn-primary"
                                             onClick={() => showBookItems(book.id)}
-                                            style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                                            style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
                                         >
                                             Egzemplarze
                                         </button>
                                         <button
                                             className="btn btn-secondary"
                                             onClick={() => startEditBook(book)}
-                                            style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                                            style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
                                         >
                                             Edytuj
                                         </button>
                                         <button
                                             className="btn btn-danger"
                                             onClick={() => setDeleteConfirmBook(book.id)}
-                                            style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                                            style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
                                         >
                                             Usuń
                                         </button>
@@ -608,7 +612,7 @@ export function BookManagement({ token }: Props) {
                     }}
                 >
                     <p>Czy na pewno chcesz usunąć książkę o ID {deleteConfirmBook}?</p>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <div style={{display: "flex", gap: "0.5rem"}}>
                         <button
                             className="btn btn-danger"
                             onClick={() => handleDeleteBook(deleteConfirmBook)}
@@ -644,7 +648,7 @@ export function BookManagement({ token }: Props) {
                             marginBottom: "1rem",
                         }}
                     >
-                        <h4 style={{ margin: 0 }}>
+                        <h4 style={{margin: 0}}>
                             Egzemplarze książki:{" "}
                             {books.find((b) => b.id === selectedBookId)?.title}
                         </h4>
@@ -656,7 +660,7 @@ export function BookManagement({ token }: Props) {
                                 setIsAddingItem(false);
                                 setEditingItemId(null);
                             }}
-                            style={{ padding: "0.5rem 1rem" }}
+                            style={{padding: "0.5rem 1rem"}}
                         >
                             Zamknij
                         </button>
@@ -677,7 +681,7 @@ export function BookManagement({ token }: Props) {
                                 {editingItemId ? "Edytuj egzemplarz" : "Dodaj egzemplarz"}
                             </h5>
                             {itemFormError && (
-                                <div style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
+                                <div style={{color: "#ff6b6b", marginBottom: "0.5rem"}}>
                                     {itemFormError}
                                 </div>
                             )}
@@ -688,13 +692,13 @@ export function BookManagement({ token }: Props) {
                                     className="form-control"
                                     value={itemFormData.isbn}
                                     onChange={(e) =>
-                                        setItemFormData({ ...itemFormData, isbn: e.target.value })
+                                        setItemFormData({...itemFormData, isbn: e.target.value})
                                     }
                                     placeholder="np. 978-3-16-148410-0"
                                 />
                             </div>
                             <div className="form-group">
-                                <label style={{ display: "flex", alignItems: "center" }}>
+                                <label style={{display: "flex", alignItems: "center"}}>
                                     <input
                                         type="checkbox"
                                         checked={itemFormData.isAvailable}
@@ -704,13 +708,13 @@ export function BookManagement({ token }: Props) {
                                                 isAvailable: e.target.checked,
                                             })
                                         }
-                                        style={{ marginRight: "0.5rem" }}
+                                        style={{marginRight: "0.5rem"}}
                                     />
                                     Dostępny
                                 </label>
                             </div>
                             <div
-                                style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}
+                                style={{display: "flex", gap: "0.5rem", marginTop: "1rem"}}
                             >
                                 <button
                                     className="btn btn-primary"
@@ -730,7 +734,7 @@ export function BookManagement({ token }: Props) {
                     <button
                         className="btn btn-primary"
                         onClick={() => setIsAddingItem(true)}
-                        style={{ marginBottom: "1rem" }}
+                        style={{marginBottom: "1rem"}}
                         disabled={isAddingItem || editingItemId !== null}
                     >
                         + Dodaj egzemplarz
@@ -739,12 +743,12 @@ export function BookManagement({ token }: Props) {
                     {loadingItems ? (
                         <p>Ładowanie egzemplarzy...</p>
                     ) : bookItems.length === 0 ? (
-                        <p style={{ color: "#999", fontStyle: "italic" }}>
+                        <p style={{color: "#999", fontStyle: "italic"}}>
                             Brak egzemplarzy dla tej książki
                         </p>
                     ) : (
-                        <div style={{ overflowX: "auto" }}>
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <div style={{overflowX: "auto"}}>
+                            <table style={{width: "100%", borderCollapse: "collapse"}}>
                                 <thead>
                                 <tr
                                     style={{
@@ -752,10 +756,10 @@ export function BookManagement({ token }: Props) {
                                         borderBottom: "2px solid var(--border-color)",
                                     }}
                                 >
-                                    <th style={{ padding: "0.75rem", textAlign: "left" }}>ID</th>
-                                    <th style={{ padding: "0.75rem", textAlign: "left" }}>ISBN</th>
-                                    <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
-                                    <th style={{ padding: "0.75rem", textAlign: "center" }}>Akcje</th>
+                                    <th style={{padding: "0.75rem", textAlign: "left"}}>ID</th>
+                                    <th style={{padding: "0.75rem", textAlign: "left"}}>ISBN</th>
+                                    <th style={{padding: "0.75rem", textAlign: "left"}}>Status</th>
+                                    <th style={{padding: "0.75rem", textAlign: "center"}}>Akcje</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -766,9 +770,9 @@ export function BookManagement({ token }: Props) {
                                             borderBottom: "1px solid var(--border-color)",
                                         }}
                                     >
-                                        <td style={{ padding: "0.75rem" }}>{item.id}</td>
-                                        <td style={{ padding: "0.75rem" }}>{item.isbn}</td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{padding: "0.75rem"}}>{item.id}</td>
+                                        <td style={{padding: "0.75rem"}}>{item.isbn}</td>
+                                        <td style={{padding: "0.75rem"}}>
                                             <span
                                                 style={{
                                                     padding: "0.25rem 0.75rem",
@@ -783,7 +787,7 @@ export function BookManagement({ token }: Props) {
                                                 {item.isAvailable ? "Dostępny" : "Wypożyczony"}
                                             </span>
                                         </td>
-                                        <td style={{ padding: "0.75rem", textAlign: "center" }}>
+                                        <td style={{padding: "0.75rem", textAlign: "center"}}>
                                             <div
                                                 style={{
                                                     display: "flex",
@@ -835,7 +839,7 @@ export function BookManagement({ token }: Props) {
                             <p>
                                 Czy na pewno chcesz usunąć egzemplarz o ID {deleteConfirmItem}?
                             </p>
-                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <div style={{display: "flex", gap: "0.5rem"}}>
                                 <button
                                     className="btn btn-danger"
                                     onClick={() => handleDeleteBookItem(deleteConfirmItem)}
@@ -879,7 +883,7 @@ export function BookManagement({ token }: Props) {
                     >
                         <h4>{editingCategoryId ? "Edytuj kategorię" : "Dodaj kategorię"}</h4>
                         {categoryFormError && (
-                            <div style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
+                            <div style={{color: "#ff6b6b", marginBottom: "0.5rem"}}>
                                 {categoryFormError}
                             </div>
                         )}
@@ -890,12 +894,12 @@ export function BookManagement({ token }: Props) {
                                 className="form-control"
                                 value={categoryFormData.name}
                                 onChange={(e) =>
-                                    setCategoryFormData({ ...categoryFormData, name: e.target.value })
+                                    setCategoryFormData({...categoryFormData, name: e.target.value})
                                 }
                                 placeholder="np. Fantastyka"
                             />
                         </div>
-                        <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+                        <div style={{display: "flex", gap: "0.5rem", marginTop: "1rem"}}>
                             <button
                                 className="btn btn-primary"
                                 onClick={editingCategoryId ? handleUpdateCategory : handleAddCategory}
@@ -912,7 +916,7 @@ export function BookManagement({ token }: Props) {
                 <button
                     className="btn btn-primary"
                     onClick={() => setIsAddingCategory(true)}
-                    style={{ marginBottom: "1rem" }}
+                    style={{marginBottom: "1rem"}}
                     disabled={isAddingCategory || editingCategoryId !== null}
                 >
                     + Dodaj nową kategorię
@@ -920,12 +924,12 @@ export function BookManagement({ token }: Props) {
 
                 {/* Lista kategorii */}
                 {categories.length === 0 ? (
-                    <p style={{ color: "#999", fontStyle: "italic" }}>
+                    <p style={{color: "#999", fontStyle: "italic"}}>
                         Brak kategorii. Dodaj pierwszą kategorię.
                     </p>
                 ) : (
-                    <div style={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <div style={{overflowX: "auto"}}>
+                        <table style={{width: "100%", borderCollapse: "collapse"}}>
                             <thead>
                             <tr
                                 style={{
@@ -933,9 +937,9 @@ export function BookManagement({ token }: Props) {
                                     borderBottom: "2px solid var(--border-color)",
                                 }}
                             >
-                                <th style={{ padding: "0.75rem", textAlign: "left" }}>ID</th>
-                                <th style={{ padding: "0.75rem", textAlign: "left" }}>Nazwa</th>
-                                <th style={{ padding: "0.75rem", textAlign: "center" }}>Akcje</th>
+                                <th style={{padding: "0.75rem", textAlign: "left"}}>ID</th>
+                                <th style={{padding: "0.75rem", textAlign: "left"}}>Nazwa</th>
+                                <th style={{padding: "0.75rem", textAlign: "center"}}>Akcje</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -946,9 +950,9 @@ export function BookManagement({ token }: Props) {
                                         borderBottom: "1px solid var(--border-color)",
                                     }}
                                 >
-                                    <td style={{ padding: "0.75rem" }}>{category.id}</td>
-                                    <td style={{ padding: "0.75rem" }}>{category.name}</td>
-                                    <td style={{ padding: "0.75rem", textAlign: "center" }}>
+                                    <td style={{padding: "0.75rem"}}>{category.id}</td>
+                                    <td style={{padding: "0.75rem"}}>{category.name}</td>
+                                    <td style={{padding: "0.75rem", textAlign: "center"}}>
                                         <div
                                             style={{
                                                 display: "flex",
@@ -960,14 +964,14 @@ export function BookManagement({ token }: Props) {
                                             <button
                                                 className="btn btn-secondary"
                                                 onClick={() => startEditCategory(category)}
-                                                style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                                                style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
                                             >
                                                 Edytuj
                                             </button>
                                             <button
                                                 className="btn btn-danger"
                                                 onClick={() => setDeleteConfirmCategory(category.id)}
-                                                style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                                                style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
                                             >
                                                 Usuń
                                             </button>
@@ -992,7 +996,7 @@ export function BookManagement({ token }: Props) {
                         }}
                     >
                         <p>Czy na pewno chcesz usunąć kategorię o ID {deleteConfirmCategory}?</p>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <div style={{display: "flex", gap: "0.5rem"}}>
                             <button
                                 className="btn btn-danger"
                                 onClick={() => handleDeleteCategory(deleteConfirmCategory)}

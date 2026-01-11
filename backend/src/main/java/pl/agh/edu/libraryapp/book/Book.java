@@ -1,5 +1,6 @@
 package pl.agh.edu.libraryapp.book;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -38,6 +39,7 @@ public class Book {
     private Set<BookItem> bookItems = new HashSet<>();
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private Set<BookQueue> bookQueues = new HashSet<>();
 
     public Book() {}
