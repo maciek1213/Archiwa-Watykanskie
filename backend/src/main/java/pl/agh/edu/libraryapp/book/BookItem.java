@@ -1,8 +1,9 @@
 package pl.agh.edu.libraryapp.book;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,41 +15,30 @@ public class BookItem {
     private Long id;
 
     @NotNull(message = "isbn is required")
-    private Integer isbn;
-
-    @NotNull(message = "author is required")
-    private String author;
+    private String isbn;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="book_id")
+    @JsonBackReference("book-items")
     private Book book;
 
-    @NotNull(message = "avaibilty status is required")
-    private Boolean isAvailable;
+    @NotNull(message = "availability status is required")
+    private Boolean isAvailable = true;
 
-    //relacje nie bedace w tabeli book_item
-    @OneToMany(mappedBy = "bookItem")
+    @OneToMany(mappedBy = "bookItem", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Rentals> rentals = new HashSet<>();
 
     public BookItem() {}
 
-    public BookItem(Integer isbn, String author, Boolean isAvailable) {
-        this.isbn = isbn;
-        this.author = author;
-        this.isAvailable = isAvailable;
-    }
-
-    //settery i gettery
-    public Long getId() {return id;}
-    public void setId(Long id) {this.id = id;}
-    public Integer getIsbn() {return isbn;}
-    public void setIsbn(Integer isbn) {this.isbn = isbn;}
-    public String getAuthor() {return author;}
-    public void setAuthor(String author) {this.author = author;}
-    public Book getBook() {return book;}
-    public void setBook(Book book) {this.book = book;}
-    public Boolean getIsAvailable() {return isAvailable;}
-    public void setIsAvailable(Boolean isAvailable) {this.isAvailable = isAvailable;}
-    public Set<Rentals> getRentals() {return rentals;}
-    public void setRentals(Set<Rentals> rentals){this.rentals = rentals;}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getIsbn() { return isbn; }
+    public void setIsbn(String isbn) { this.isbn = isbn; }
+    public Book getBook() { return book; }
+    public void setBook(Book book) { this.book = book; }
+    public Boolean getIsAvailable() { return isAvailable; }
+    public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
+    public Set<Rentals> getRentals() { return rentals; }
+    public void setRentals(Set<Rentals> rentals) { this.rentals = rentals; }
 }
