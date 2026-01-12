@@ -24,6 +24,14 @@ public class RentalsController {
         return ResponseEntity.ok(rental);
     }
 
+    @PostMapping("/rent-by-book")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Rentals> rentBookAuto(@RequestParam Long bookId,
+                                                @RequestParam Long userId) {
+        Rentals rental = rentalsService.rentBookAuto(userId, bookId);
+        return ResponseEntity.ok(rental);
+    }
+
     @PostMapping("/return/{rentalId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Rentals> returnBook(@PathVariable Long rentalId) {

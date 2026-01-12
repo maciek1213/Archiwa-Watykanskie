@@ -1,7 +1,7 @@
 package pl.agh.edu.libraryapp.book;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -19,7 +19,7 @@ public class BookItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="book_id")
-    @JsonBackReference("book-items")
+    @JsonIgnoreProperties({"bookItems", "bookQueues"})
     private Book book;
 
     @NotNull(message = "availability status is required")

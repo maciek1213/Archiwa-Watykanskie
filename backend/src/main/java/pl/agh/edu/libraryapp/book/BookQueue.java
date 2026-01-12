@@ -1,5 +1,6 @@
 package pl.agh.edu.libraryapp.book;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import pl.agh.edu.libraryapp.user.User;
@@ -11,12 +12,14 @@ public class BookQueue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="user_id")
+    @JsonIgnoreProperties({"password", "rentals", "bookQueues"})
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="book_id")
+    @JsonIgnoreProperties({"bookItems", "bookQueues"})
     private Book book;
 
     @NotNull(message = "status is required")

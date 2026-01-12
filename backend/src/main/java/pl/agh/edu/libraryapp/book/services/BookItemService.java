@@ -42,7 +42,7 @@ public class BookItemService {
     }
 
     public BookItem getBookItemById(Long id) {
-        return bookItemRepository.findById(id)
+        return bookItemRepository.findByIdWithBook(id)
                 .orElseThrow(() -> new BookItemNotFoundException("BookItem not found"));
     }
 

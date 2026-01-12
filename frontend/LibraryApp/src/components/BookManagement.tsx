@@ -136,7 +136,6 @@ export function BookManagement({token}: Props) {
                 }).filter(Boolean),
             };
 
-            console.log(bookData)
             await axios.post("http://localhost:8080/book", bookData, {
                 headers: {
                     Authorization: `Bearer ${effectiveToken}`,
