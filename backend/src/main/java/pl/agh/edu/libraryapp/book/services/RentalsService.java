@@ -2,6 +2,7 @@ package pl.agh.edu.libraryapp.book.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.book.BookItem;
 import pl.agh.edu.libraryapp.book.Rentals;
 import pl.agh.edu.libraryapp.book.repositories.RentalsRepository;
@@ -42,6 +43,13 @@ public class RentalsService {
         }
 
         BookItem bookItem = bookItemService.getBookItemById(bookItemId);
+        Long bookId = bookItem.getBook().getId();
+
+        if (!bookQueueService.canUserBorrowBook(userId, bookId)) {
+            throw new BookItemNotAvailableException("Książka jest zarezerwowana dla pierwszej osoby w kolejce. Musisz zaczekać w kolejce.");
+        }
+
+        bookQueueService.removeUserFromNotifiedQueue(userId, bookId);
 
         // Create rental record
         Rentals rental = new Rentals();
@@ -53,6 +61,39 @@ public class RentalsService {
 
 
         bookItemService.markAsRented(bookItemId);
+
+        return rentalRepository.save(rental);
+    }
+
+    @Transactional
+    public Rentals rentBookAuto(Long userId, Long bookId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!bookQueueService.canUserBorrowBook(userId, bookId)) {
+            throw new BookItemNotAvailableException("Książka jest zarezerwowana dla pierwszej osoby w kolejce. Musisz zaczekać w kolejce.");
+        }
+
+        // Znajdź pierwszy dostępny egzemplarz
+        Book book = bookService.getBookById(bookId);
+        List<BookItem> availableItems = bookItemService.getAvailableBookItemsByBook(bookId);
+        
+        if (availableItems.isEmpty()) {
+            throw new BookItemNotAvailableException("Brak dostępnych egzemplarzy tej książki");
+        }
+
+        BookItem bookItem = availableItems.get(0);
+
+        bookQueueService.removeUserFromNotifiedQueue(userId, bookId);
+
+        Rentals rental = new Rentals();
+        rental.setUser(user);
+        rental.setBookItem(bookItem);
+        rental.setStatus("ACTIVE");
+        rental.setStartDate(LocalDate.now());
+        rental.setEndDate(LocalDate.now().plusWeeks(2));
+
+        bookItemService.markAsRented(bookItem.getId());
 
         return rentalRepository.save(rental);
     }

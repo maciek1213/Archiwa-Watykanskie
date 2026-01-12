@@ -38,6 +38,7 @@ public class Notification {
         this.title = title;
         this.message = message;
         this.user = user;
+        this.status = NotificationStatus.NEW;
         this.createdAt = LocalDateTime.now();
     }
 }

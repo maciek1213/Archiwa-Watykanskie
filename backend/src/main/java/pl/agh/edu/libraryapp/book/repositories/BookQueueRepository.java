@@ -9,7 +9,9 @@ import java.util.List;
 
 public interface BookQueueRepository extends JpaRepository<BookQueue, Long> {
     List<BookQueue> findByBook(Book book);
+    List<BookQueue> findByBookOrderByIdAsc(Book book);
     List<BookQueue> findByUser(User user);
+    List<BookQueue> findByUserAndBook(User user, Book book);
     List<BookQueue> findByBookAndStatusOrderByIdAsc(Book book, String status);
     boolean existsByUserAndBookAndStatus(User user, Book book, String status);
 }
