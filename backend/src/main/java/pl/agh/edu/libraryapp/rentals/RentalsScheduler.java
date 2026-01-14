@@ -20,8 +20,8 @@ public class RentalsScheduler {
     private final RentalsRepository rentalRepository;
     private final NotificationService notificationService;
 
-    @Scheduled(cron = "0 0 0 * * *")
     @Transactional
+    @Scheduled(cron = "0 0 0 * * *")
     public void checkOverdueRentals() {
         List<Rentals> overdueRentals = rentalRepository.findOverdueRentals(LocalDate.now());
 
@@ -32,8 +32,8 @@ public class RentalsScheduler {
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
     @Transactional
+    @Scheduled(cron = "0 0 0 * * *")
     public void checkSoonOverdueRentals() {
         LocalDate soon = LocalDate.now().plusDays(3);
         List<Rentals> overdueRentals = rentalRepository.findByStatusAndEndDate("ACTIVE" ,soon);
@@ -41,6 +41,5 @@ public class RentalsScheduler {
         for (Rentals rental : overdueRentals) {
             notificationService.addUpcomingReturnReminder(rental);
         }
-
     }
 }

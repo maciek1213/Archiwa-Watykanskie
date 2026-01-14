@@ -8,6 +8,7 @@ import pl.agh.edu.libraryapp.book.Rentals;
 import pl.agh.edu.libraryapp.book.repositories.RentalsRepository;
 import pl.agh.edu.libraryapp.book.exceptions.RentalNotFoundException;
 import pl.agh.edu.libraryapp.book.exceptions.BookItemNotAvailableException;
+import pl.agh.edu.libraryapp.notifications.NotificationService;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserRepository;
 
@@ -23,14 +24,16 @@ public class RentalsService {
     private final BookService bookService;
     private final UserRepository userRepository;
     private final BookQueueService bookQueueService;
+    private final NotificationService notificationService;
 
     public RentalsService(RentalsRepository rentalRepository, BookItemService bookItemService,
-                         BookService bookService, UserRepository userRepository,  BookQueueService bookQueueService) {
+                          BookService bookService, UserRepository userRepository, BookQueueService bookQueueService, NotificationService notificationService) {
         this.rentalRepository = rentalRepository;
         this.bookItemService = bookItemService;
         this.bookService = bookService;
         this.userRepository = userRepository;
         this.bookQueueService = bookQueueService;
+        this.notificationService = notificationService;
     }
 
     public Rentals rentBook(Long userId, Long bookItemId) {
@@ -94,6 +97,7 @@ public class RentalsService {
         rental.setEndDate(LocalDate.now().plusWeeks(2));
 
         bookItemService.markAsRented(bookItem.getId());
+        notificationService.addBookRentedNotification(rental);
 
         return rentalRepository.save(rental);
     }

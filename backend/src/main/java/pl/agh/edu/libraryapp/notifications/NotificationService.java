@@ -17,10 +17,12 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserService userService;
+    private final LibraryMailService mailService;
 
-    public NotificationService(NotificationRepository notificationRepository, UserService userService) {
+    public NotificationService(NotificationRepository notificationRepository, UserService userService, LibraryMailService mailService) {
         this.notificationRepository = notificationRepository;
         this.userService = userService;
+        this.mailService = mailService;
     }
 
     private void save(User user, String title, String message) {
@@ -34,6 +36,7 @@ public class NotificationService {
         String message = String.format("Zarezerwowana pozycja '%s' (autor: %s) jest już dostępna do odbioru.",
                 book.getTitle(), book.getAuthor());
 
+        mailService.sendMail(user.getEmail(), title, message);
         save(user, title, message);
     }
     @Transactional
@@ -42,6 +45,7 @@ public class NotificationService {
         String message = String.format("Termin zwrotu książki '%s' minął %s. Prosimy o niezwłoczny zwrot, aby uniknąć naliczania dalszych opłat.",
                 rental.getBookItem().getBook().getTitle(), rental.getEndDate());
 
+        mailService.sendMail(title, message, rental.getUser().getEmail());
         save(rental.getUser(), title, message);
     }
     @Transactional
@@ -49,7 +53,7 @@ public class NotificationService {
         String title = "Potwierdzenie zwrotu";
         String message = String.format("Książka '%s' została pomyślnie zwrócona do systemu. Dziękujemy!",
                 rental.getBookItem().getBook().getTitle());
-
+        mailService.sendMail(title, message, rental.getUser().getEmail());
         save(rental.getUser(), title, message);
     }
     @Transactional
@@ -58,7 +62,19 @@ public class NotificationService {
         String message = String.format("Przypominamy, że termin zwrotu książki '%s' upływa za 3 dni (%s).",
                 rental.getBookItem().getBook().getTitle(), rental.getEndDate());
 
+        mailService.sendMail(title, message, rental.getUser().getEmail());
         save(rental.getUser(), title, message);
+    }
+
+    @Transactional
+    public void addBookRentedNotification(Rentals rental) {
+        String title = "Wypożyczono książkę";
+        String message = String.format("Książka '%s jest gotowa do odebrania.",
+                rental.getBookItem().getBook().getTitle());
+
+        mailService.sendMail(title, message, rental.getUser().getEmail());
+        Notification notification = new Notification(title, message, rental.getUser());
+        notificationRepository.save(notification);
     }
 
     @Transactional
