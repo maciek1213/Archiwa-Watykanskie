@@ -11,4 +11,6 @@ public class BookResponseDTO {
     private String author;
     private Integer count;
     private Set<Category> categories;
+    private Double averageRating;
+    private Long reviewCount;
 }

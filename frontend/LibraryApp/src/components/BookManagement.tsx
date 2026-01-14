@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface Category {
@@ -24,7 +24,7 @@ interface Props {
     token: string | null;
 }
 
-export function BookManagement({token}: Props) {
+export function BookManagement({ token }: Props) {
     const [books, setBooks] = useState<Book[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -132,7 +132,7 @@ export function BookManagement({token}: Props) {
                 count: bookFormData.count,
                 categories: bookFormData.categoryIds.map(id => {
                     const category = categories.find(c => c.id === id);
-                    return category ? {id: category.id, name: category.name} : null;
+                    return category ? { id: category.id, name: category.name } : null;
                 }).filter(Boolean),
             };
 
@@ -143,7 +143,7 @@ export function BookManagement({token}: Props) {
             });
 
             setIsAddingBook(false);
-            setBookFormData({title: "", author: "", count: 0, categoryIds: []});
+            setBookFormData({ title: "", author: "", count: 0, categoryIds: [] });
             fetchBooks();
         } catch (err) {
             setBookFormError("Nie udało się dodać książki");
@@ -160,7 +160,7 @@ export function BookManagement({token}: Props) {
                 title: bookFormData.title,
                 author: bookFormData.author,
                 count: bookFormData.count,
-                categories: bookFormData.categoryIds.map(id => ({id})),
+                categories: bookFormData.categoryIds.map(id => ({ id })),
             };
 
             await axios.put(
@@ -174,7 +174,7 @@ export function BookManagement({token}: Props) {
             );
 
             setEditingBookId(null);
-            setBookFormData({title: "", author: "", count: 0, categoryIds: []});
+            setBookFormData({ title: "", author: "", count: 0, categoryIds: [] });
             fetchBooks();
         } catch (err) {
             setBookFormError("Nie udało się zaktualizować książki");
@@ -214,7 +214,7 @@ export function BookManagement({token}: Props) {
     const cancelBookForm = () => {
         setIsAddingBook(false);
         setEditingBookId(null);
-        setBookFormData({title: "", author: "", count: 0, categoryIds: []});
+        setBookFormData({ title: "", author: "", count: 0, categoryIds: [] });
         setBookFormError(null);
     };
 
@@ -231,7 +231,7 @@ export function BookManagement({token}: Props) {
         try {
             setCategoryFormError(null);
             if (!categoryFormData.name) {
-                setCategoryFormError("Nazwa kategorii jest wymagana");
+                setCategoryFormError("Nazwa kategorii jest wymagane");
                 return;
             }
 
@@ -242,7 +242,7 @@ export function BookManagement({token}: Props) {
             });
 
             setIsAddingCategory(false);
-            setCategoryFormData({name: ""});
+            setCategoryFormData({ name: "" });
             fetchCategories();
         } catch (err: any) {
             setCategoryFormError(err.response?.data || "Nie udało się dodać kategorii");
@@ -265,7 +265,7 @@ export function BookManagement({token}: Props) {
             );
 
             setEditingCategoryId(null);
-            setCategoryFormData({name: ""});
+            setCategoryFormData({ name: "" });
             fetchCategories();
             fetchBooks();
         } catch (err: any) {
@@ -291,14 +291,14 @@ export function BookManagement({token}: Props) {
 
     const startEditCategory = (category: Category) => {
         setEditingCategoryId(category.id);
-        setCategoryFormData({name: category.name});
+        setCategoryFormData({ name: category.name });
         setIsAddingCategory(false);
     };
 
     const cancelCategoryForm = () => {
         setEditingCategoryId(null);
         setIsAddingCategory(false);
-        setCategoryFormData({name: ""});
+        setCategoryFormData({ name: "" });
         setCategoryFormError(null);
     };
 
@@ -323,7 +323,7 @@ export function BookManagement({token}: Props) {
             );
 
             setIsAddingItem(false);
-            setItemFormData({isbn: "", isAvailable: true});
+            setItemFormData({ isbn: "", isAvailable: true });
 
             fetchBookItems(selectedBookId);
             fetchBooks();
@@ -348,7 +348,7 @@ export function BookManagement({token}: Props) {
             );
 
             setEditingItemId(null);
-            setItemFormData({isbn: "", isAvailable: true});
+            setItemFormData({ isbn: "", isAvailable: true });
             if (selectedBookId) fetchBookItems(selectedBookId);
         } catch (err) {
             setItemFormError("Nie udało się zaktualizować egzemplarza");
@@ -383,7 +383,7 @@ export function BookManagement({token}: Props) {
     const cancelItemForm = () => {
         setIsAddingItem(false);
         setEditingItemId(null);
-        setItemFormData({isbn: "", isAvailable: true});
+        setItemFormData({ isbn: "", isAvailable: true });
         setItemFormError(null);
     };
 
@@ -393,425 +393,198 @@ export function BookManagement({token}: Props) {
     };
 
     return (
-        <div className="profile-card" style={{marginTop: "2rem"}}>
-            <h3>Zarządzanie Książkami</h3>
+        <div className="bg-white rounded-2xl shadow-xl p-6 mt-8">
+            <div className="flex justify-between items-center mb-8">
+                <h3 className="text-3xl font-bold text-gray-900">Zarządzanie Książkami</h3>
+                <div className="flex gap-3">
+                    <button
+                        className="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all transform hover:-translate-y-0.5 shadow-lg"
+                        onClick={() => setIsAddingBook(true)}
+                        disabled={isAddingBook || editingBookId !== null}
+                    >
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Dodaj książkę
+            </span>
+                    </button>
+                    <button
+                        className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all transform hover:-translate-y-0.5 shadow-lg"
+                        onClick={() => setIsAddingCategory(true)}
+                        disabled={isAddingCategory || editingCategoryId !== null}
+                    >
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Dodaj kategorię
+            </span>
+                    </button>
+                </div>
+            </div>
 
             {error && (
-                <div style={{color: "#ff6b6b", marginBottom: "1rem"}}>{error}</div>
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-red-700">{error}</p>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Formularz dodawania/edycji książki */}
             {(isAddingBook || editingBookId) && (
-                <div
-                    style={{
-                        marginBottom: "2rem",
-                        padding: "1rem",
-                        backgroundColor: "var(--bg-secondary)",
-                        borderRadius: "4px",
-                        border: "1px solid var(--border-color)",
-                    }}
-                >
-                    <h4>{editingBookId ? "Edytuj książkę" : "Dodaj książkę"}</h4>
+                <div className="mb-8 p-6 bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl border border-amber-200 shadow-lg">
+                    <h4 className="text-2xl font-bold text-gray-900 mb-6">{editingBookId ? "Edytuj książkę" : "Dodaj książkę"}</h4>
                     {bookFormError && (
-                        <div style={{color: "#ff6b6b", marginBottom: "0.5rem"}}>
-                            {bookFormError}
+                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-red-700">{bookFormError}</p>
                         </div>
                     )}
-                    <div className="form-group">
-                        <label>Tytuł</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={bookFormData.title}
-                            onChange={(e) =>
-                                setBookFormData({...bookFormData, title: e.target.value})
-                            }
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Autor</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={bookFormData.author}
-                            onChange={(e) =>
-                                setBookFormData({...bookFormData, author: e.target.value})
-                            }
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Tytuł</label>
+                            <input
+                                type="text"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                                value={bookFormData.title}
+                                onChange={(e) =>
+                                    setBookFormData({ ...bookFormData, title: e.target.value })
+                                }
+                                placeholder="Wpisz tytuł książki"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Autor</label>
+                            <input
+                                type="text"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                                value={bookFormData.author}
+                                onChange={(e) =>
+                                    setBookFormData({ ...bookFormData, author: e.target.value })
+                                }
+                                placeholder="Wpisz autora"
+                            />
+                        </div>
                     </div>
 
                     {/* Wybór kategorii */}
-                    <div className="form-group">
-                        <label>Kategorie</label>
-                        <div style={{display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem"}}>
+                    <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">Kategorie</label>
+                        <div className="flex flex-wrap gap-3">
                             {categories.map((category) => (
-                                <label
+                                <button
                                     key={category.id}
-                                    style={{
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        padding: "0.5rem 0.75rem",
-                                        borderRadius: "4px",
-                                        cursor: "pointer",
-                                        backgroundColor: bookFormData.categoryIds.includes(category.id)
-                                            ? "#d4a574"
-                                            : "var(--bg-primary)",
-                                        border: "1px solid var(--border-color)",
-                                        color: bookFormData.categoryIds.includes(category.id)
-                                            ? "#1a1a12"
-                                            : "var(--text-primary)",
-                                        fontWeight: bookFormData.categoryIds.includes(category.id) ? "bold" : "normal",
-                                        transition: "all 0.2s",
-                                    }}
+                                    type="button"
+                                    onClick={() => toggleCategory(category.id)}
+                                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${bookFormData.categoryIds.includes(category.id)
+                                        ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md'
+                                        : 'bg-white text-gray-700 border border-gray-300 hover:border-amber-400'
+                                    }`}
                                 >
-                                    <input
-                                        type="checkbox"
-                                        checked={bookFormData.categoryIds.includes(category.id)}
-                                        onChange={() => toggleCategory(category.id)}
-                                        style={{display: "none"}}
-                                    />
                                     {category.name}
-                                </label>
+                                </button>
                             ))}
                             {categories.length === 0 && (
-                                <span style={{color: "#999", fontStyle: "italic"}}>
+                                <p className="text-gray-500 italic">
                                     Brak dostępnych kategorii. Dodaj kategorie poniżej.
-                                </span>
+                                </p>
                             )}
                         </div>
                     </div>
 
-                    <div style={{display: "flex", gap: "0.5rem", marginTop: "1rem"}}>
+                    <div className="flex gap-3 mt-8">
                         <button
-                            className="btn btn-primary"
+                            className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-colors"
                             onClick={editingBookId ? handleUpdateBook : handleAddBook}
                         >
-                            {editingBookId ? "Zapisz zmiany" : "Dodaj"}
+                            {editingBookId ? "Zapisz zmiany" : "Dodaj książkę"}
                         </button>
-                        <button className="btn btn-secondary" onClick={cancelBookForm}>
+                        <button
+                            className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                            onClick={cancelBookForm}
+                        >
                             Anuluj
                         </button>
                     </div>
                 </div>
             )}
-
-            <button
-                className="btn btn-primary"
-                onClick={() => setIsAddingBook(true)}
-                style={{marginBottom: "1rem"}}
-                disabled={isAddingBook || editingBookId !== null}
-            >
-                + Dodaj nową książkę
-            </button>
 
             {/* Lista książek */}
-            {loading ? (
-                <p>Ładowanie książek...</p>
-            ) : (
-                <div style={{overflowX: "auto"}}>
-                    <table style={{width: "100%", borderCollapse: "collapse"}}>
-                        <thead>
-                        <tr
-                            style={{
-                                backgroundColor: "var(--bg-secondary)",
-                                borderBottom: "2px solid var(--border-color)",
-                            }}
-                        >
-                            <th style={{padding: "0.75rem", textAlign: "left"}}>ID</th>
-                            <th style={{padding: "0.75rem", textAlign: "left"}}>Tytuł</th>
-                            <th style={{padding: "0.75rem", textAlign: "left"}}>Autor</th>
-                            <th style={{padding: "0.75rem", textAlign: "left"}}>Kategorie</th>
-                            <th style={{padding: "0.75rem", textAlign: "left"}}>Liczba egzemplarzy</th>
-                            <th style={{padding: "0.75rem", textAlign: "center"}}>Akcje</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {books.map((book) => (
-                            <tr
-                                key={book.id}
-                                style={{
-                                    borderBottom: "1px solid var(--border-color)",
-                                }}
-                            >
-                                <td style={{padding: "0.75rem"}}>{book.id}</td>
-                                <td style={{padding: "0.75rem"}}>{book.title}</td>
-                                <td style={{padding: "0.75rem"}}>{book.author}</td>
-                                <td style={{padding: "0.75rem"}}>
-                                    {book.categories && book.categories.length > 0 ? (
-                                        <div style={{display: "flex", flexWrap: "wrap", gap: "0.25rem"}}>
-                                            {book.categories.map((category) => (
-                                                <span
-                                                    key={category.id}
-                                                    style={{
-                                                        padding: "0.2rem 0.5rem",
-                                                        borderRadius: "4px",
-                                                        backgroundColor: "#d4a574",
-                                                        color: "#1a1a12",
-                                                        fontSize: "0.8rem",
-                                                        fontWeight: "bold",
-                                                    }}
-                                                >
-                                                    {category.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <span style={{color: "#999", fontStyle: "italic"}}>Brak</span>
-                                    )}
-                                </td>
-                                <td style={{padding: "0.75rem"}}>{book.count}</td>
-                                <td style={{padding: "0.75rem", textAlign: "center"}}>
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            gap: "0.5rem",
-                                            justifyContent: "center",
-                                            flexWrap: "wrap",
-                                        }}
-                                    >
-                                        <button
-                                            className="btn btn-primary"
-                                            onClick={() => showBookItems(book.id)}
-                                            style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
-                                        >
-                                            Egzemplarze
-                                        </button>
-                                        <button
-                                            className="btn btn-secondary"
-                                            onClick={() => startEditBook(book)}
-                                            style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
-                                        >
-                                            Edytuj
-                                        </button>
-                                        <button
-                                            className="btn btn-danger"
-                                            onClick={() => setDeleteConfirmBook(book.id)}
-                                            style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
-                                        >
-                                            Usuń
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            {/* Potwierdzenie usunięcia książki */}
-            {deleteConfirmBook !== null && (
-                <div
-                    style={{
-                        marginTop: "1rem",
-                        padding: "1rem",
-                        backgroundColor: "#2a2a1f",
-                        border: "1px solid #d4a574",
-                        borderRadius: "4px",
-                    }}
-                >
-                    <p>Czy na pewno chcesz usunąć książkę o ID {deleteConfirmBook}?</p>
-                    <div style={{display: "flex", gap: "0.5rem"}}>
-                        <button
-                            className="btn btn-danger"
-                            onClick={() => handleDeleteBook(deleteConfirmBook)}
-                        >
-                            Usuń
-                        </button>
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => setDeleteConfirmBook(null)}
-                        >
-                            Anuluj
-                        </button>
+            <div className="mb-12">
+                <h4 className="text-xl font-bold text-gray-900 mb-6">Lista książek ({books.length})</h4>
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
                     </div>
-                </div>
-            )}
-
-            {/* Sekcja egzemplarzy */}
-            {selectedBookId !== null && (
-                <div
-                    style={{
-                        marginTop: "2rem",
-                        padding: "1rem",
-                        backgroundColor: "var(--bg-secondary)",
-                        borderRadius: "4px",
-                        border: "1px solid var(--border-color)",
-                    }}
-                >
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "1rem",
-                        }}
-                    >
-                        <h4 style={{margin: 0}}>
-                            Egzemplarze książki:{" "}
-                            {books.find((b) => b.id === selectedBookId)?.title}
-                        </h4>
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => {
-                                setSelectedBookId(null);
-                                setBookItems([]);
-                                setIsAddingItem(false);
-                                setEditingItemId(null);
-                            }}
-                            style={{padding: "0.5rem 1rem"}}
-                        >
-                            Zamknij
-                        </button>
-                    </div>
-
-                    {/* Formularz dodawania/edycji egzemplarza */}
-                    {(isAddingItem || editingItemId) && (
-                        <div
-                            style={{
-                                marginBottom: "1rem",
-                                padding: "1rem",
-                                backgroundColor: "var(--bg-primary)",
-                                borderRadius: "4px",
-                                border: "1px solid var(--border-color)",
-                            }}
-                        >
-                            <h5>
-                                {editingItemId ? "Edytuj egzemplarz" : "Dodaj egzemplarz"}
-                            </h5>
-                            {itemFormError && (
-                                <div style={{color: "#ff6b6b", marginBottom: "0.5rem"}}>
-                                    {itemFormError}
-                                </div>
-                            )}
-                            <div className="form-group">
-                                <label>ISBN</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={itemFormData.isbn}
-                                    onChange={(e) =>
-                                        setItemFormData({...itemFormData, isbn: e.target.value})
-                                    }
-                                    placeholder="np. 978-3-16-148410-0"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label style={{display: "flex", alignItems: "center"}}>
-                                    <input
-                                        type="checkbox"
-                                        checked={itemFormData.isAvailable}
-                                        onChange={(e) =>
-                                            setItemFormData({
-                                                ...itemFormData,
-                                                isAvailable: e.target.checked,
-                                            })
-                                        }
-                                        style={{marginRight: "0.5rem"}}
-                                    />
-                                    Dostępny
-                                </label>
-                            </div>
-                            <div
-                                style={{display: "flex", gap: "0.5rem", marginTop: "1rem"}}
-                            >
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={
-                                        editingItemId ? handleUpdateBookItem : handleAddBookItem
-                                    }
-                                >
-                                    {editingItemId ? "Zapisz zmiany" : "Dodaj"}
-                                </button>
-                                <button className="btn btn-secondary" onClick={cancelItemForm}>
-                                    Anuluj
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setIsAddingItem(true)}
-                        style={{marginBottom: "1rem"}}
-                        disabled={isAddingItem || editingItemId !== null}
-                    >
-                        + Dodaj egzemplarz
-                    </button>
-
-                    {loadingItems ? (
-                        <p>Ładowanie egzemplarzy...</p>
-                    ) : bookItems.length === 0 ? (
-                        <p style={{color: "#999", fontStyle: "italic"}}>
-                            Brak egzemplarzy dla tej książki
-                        </p>
-                    ) : (
-                        <div style={{overflowX: "auto"}}>
-                            <table style={{width: "100%", borderCollapse: "collapse"}}>
-                                <thead>
-                                <tr
-                                    style={{
-                                        backgroundColor: "var(--bg-primary)",
-                                        borderBottom: "2px solid var(--border-color)",
-                                    }}
-                                >
-                                    <th style={{padding: "0.75rem", textAlign: "left"}}>ID</th>
-                                    <th style={{padding: "0.75rem", textAlign: "left"}}>ISBN</th>
-                                    <th style={{padding: "0.75rem", textAlign: "left"}}>Status</th>
-                                    <th style={{padding: "0.75rem", textAlign: "center"}}>Akcje</th>
+                ) : (
+                    <div className="overflow-hidden rounded-xl border border-gray-200 shadow">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gradient-to-r from-gray-800 to-gray-900">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">ID</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Tytuł</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Autor</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Kategorie</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Egzemplarze</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">Akcje</th>
                                 </tr>
                                 </thead>
-                                <tbody>
-                                {bookItems.map((item) => (
-                                    <tr
-                                        key={item.id}
-                                        style={{
-                                            borderBottom: "1px solid var(--border-color)",
-                                        }}
-                                    >
-                                        <td style={{padding: "0.75rem"}}>{item.id}</td>
-                                        <td style={{padding: "0.75rem"}}>{item.isbn}</td>
-                                        <td style={{padding: "0.75rem"}}>
-                                            <span
-                                                style={{
-                                                    padding: "0.25rem 0.75rem",
-                                                    borderRadius: "4px",
-                                                    backgroundColor: item.isAvailable
-                                                        ? "#28a745"
-                                                        : "#dc3545",
-                                                    color: "white",
-                                                    fontSize: "0.85rem",
-                                                }}
-                                            >
-                                                {item.isAvailable ? "Dostępny" : "Wypożyczony"}
-                                            </span>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                {books.map((book) => (
+                                    <tr key={book.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{book.id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{book.title}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{book.author}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-wrap gap-2">
+                                                {book.categories && book.categories.length > 0 ? (
+                                                    book.categories.map((category) => (
+                                                        <span
+                                                            key={category.id}
+                                                            className="px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full text-xs font-semibold"
+                                                        >
+                                {category.name}
+                              </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-gray-400 italic text-sm">Brak</span>
+                                                )}
+                                            </div>
                                         </td>
-                                        <td style={{padding: "0.75rem", textAlign: "center"}}>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    gap: "0.5rem",
-                                                    justifyContent: "center",
-                                                    flexWrap: "wrap",
-                                                }}
-                                            >
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1.5 inline-flex text-sm font-semibold rounded-full ${book.count > 0
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {book.count}
+                        </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <div className="flex gap-2 justify-center">
                                                 <button
-                                                    className="btn btn-secondary"
-                                                    onClick={() => startEditItem(item)}
-                                                    style={{
-                                                        padding: "0.5rem 1rem",
-                                                        fontSize: "0.85rem",
-                                                    }}
+                                                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium text-sm"
+                                                    onClick={() => showBookItems(book.id)}
+                                                >
+                                                    Egzemplarze
+                                                </button>
+                                                <button
+                                                    className="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors font-medium text-sm"
+                                                    onClick={() => startEditBook(book)}
                                                 >
                                                     Edytuj
                                                 </button>
                                                 <button
-                                                    className="btn btn-danger"
-                                                    onClick={() => setDeleteConfirmItem(item.id)}
-                                                    style={{
-                                                        padding: "0.5rem 1rem",
-                                                        fontSize: "0.85rem",
-                                                    }}
+                                                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm"
+                                                    onClick={() => setDeleteConfirmBook(book.id)}
                                                 >
                                                     Usuń
                                                 </button>
@@ -822,35 +595,227 @@ export function BookManagement({token}: Props) {
                                 </tbody>
                             </table>
                         </div>
-                    )}
+                    </div>
+                )}
+            </div>
 
-                    {/* Potwierdzenie usunięcia egzemplarza */}
-                    {deleteConfirmItem !== null && (
-                        <div
-                            style={{
-                                marginTop: "1rem",
-                                padding: "1rem",
-                                backgroundColor: "#2a2a1f",
-                                border: "1px solid #d4a574",
-                                borderRadius: "4px",
-                            }}
-                        >
-                            <p>
-                                Czy na pewno chcesz usunąć egzemplarz o ID {deleteConfirmItem}?
+            {/* Potwierdzenie usunięcia książki */}
+            {deleteConfirmBook !== null && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+                        <div className="text-center">
+                            <svg className="mx-auto h-12 w-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Usunąć książkę?</h3>
+                            <p className="text-gray-600 mb-6">
+                                Czy na pewno chcesz usunąć książkę o ID {deleteConfirmBook}? Tej operacji nie można cofnąć.
                             </p>
-                            <div style={{display: "flex", gap: "0.5rem"}}>
+                            <div className="flex gap-3 justify-center">
                                 <button
-                                    className="btn btn-danger"
-                                    onClick={() => handleDeleteBookItem(deleteConfirmItem)}
+                                    className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                                    onClick={() => handleDeleteBook(deleteConfirmBook)}
                                 >
                                     Usuń
                                 </button>
                                 <button
-                                    className="btn btn-secondary"
-                                    onClick={() => setDeleteConfirmItem(null)}
+                                    className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                    onClick={() => setDeleteConfirmBook(null)}
                                 >
                                     Anuluj
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Sekcja egzemplarzy */}
+            {selectedBookId !== null && (
+                <div className="mt-8 p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 shadow-lg">
+                    <div className="flex justify-between items-center mb-8">
+                        <h4 className="text-2xl font-bold text-gray-900">
+                            Egzemplarze książki:{" "}
+                            <span className="text-blue-700">{books.find((b) => b.id === selectedBookId)?.title}</span>
+                        </h4>
+                        <button
+                            className="px-4 py-2 border-2 border-gray-400 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                            onClick={() => {
+                                setSelectedBookId(null);
+                                setBookItems([]);
+                                setIsAddingItem(false);
+                                setEditingItemId(null);
+                            }}
+                        >
+                            Zamknij
+                        </button>
+                    </div>
+
+                    {/* Formularz dodawania/edycji egzemplarza */}
+                    {(isAddingItem || editingItemId) && (
+                        <div className="mb-6 p-6 bg-white rounded-xl border border-gray-200 shadow">
+                            <h5 className="text-xl font-bold text-gray-900 mb-6">
+                                {editingItemId ? "Edytuj egzemplarz" : "Dodaj egzemplarz"}
+                            </h5>
+                            {itemFormError && (
+                                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-red-700">{itemFormError}</p>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">ISBN</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        value={itemFormData.isbn}
+                                        onChange={(e) =>
+                                            setItemFormData({ ...itemFormData, isbn: e.target.value })
+                                        }
+                                        placeholder="np. 978-3-16-148410-0"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">Status</label>
+                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={itemFormData.isAvailable}
+                                                onChange={(e) =>
+                                                    setItemFormData({
+                                                        ...itemFormData,
+                                                        isAvailable: e.target.checked,
+                                                    })
+                                                }
+                                            />
+                                            <div className={`w-14 h-7 rounded-full ${itemFormData.isAvailable ? 'bg-green-500' : 'bg-gray-300'} transition-colors`}></div>
+                                            <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${itemFormData.isAvailable ? 'left-8' : 'left-1'}`}></div>
+                                        </div>
+                                        <span className={`font-medium ${itemFormData.isAvailable ? 'text-green-700' : 'text-gray-700'}`}>
+                      {itemFormData.isAvailable ? 'Dostępny' : 'Wypożyczony'}
+                    </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-8">
+                                <button
+                                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors"
+                                    onClick={
+                                        editingItemId ? handleUpdateBookItem : handleAddBookItem
+                                    }
+                                >
+                                    {editingItemId ? "Zapisz zmiany" : "Dodaj egzemplarz"}
+                                </button>
+                                <button
+                                    className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                    onClick={cancelItemForm}
+                                >
+                                    Anuluj
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    <button
+                        className="mb-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:-translate-y-0.5 shadow-lg flex items-center gap-2"
+                        onClick={() => setIsAddingItem(true)}
+                        disabled={isAddingItem || editingItemId !== null}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Dodaj egzemplarz
+                    </button>
+
+                    {loadingItems ? (
+                        <div className="flex justify-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        </div>
+                    ) : bookItems.length === 0 ? (
+                        <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
+                            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <p className="text-gray-500 text-lg">Brak egzemplarzy dla tej książki</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-hidden rounded-xl border border-gray-200 shadow">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gradient-to-r from-blue-800 to-blue-900">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">ID</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">ISBN</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Status</th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">Akcje</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    {bookItems.map((item) => (
+                                        <tr key={item.id} className="hover:bg-blue-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.id}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">{item.isbn}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full ${item.isAvailable
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {item.isAvailable ? "Dostępny" : "Wypożyczony"}
+                          </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <div className="flex gap-2 justify-center">
+                                                    <button
+                                                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium text-sm"
+                                                        onClick={() => startEditItem(item)}
+                                                    >
+                                                        Edytuj
+                                                    </button>
+                                                    <button
+                                                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm"
+                                                        onClick={() => setDeleteConfirmItem(item.id)}
+                                                    >
+                                                        Usuń
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Potwierdzenie usunięcia egzemplarza */}
+                    {deleteConfirmItem !== null && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+                                <div className="text-center">
+                                    <svg className="mx-auto h-12 w-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">Usunąć egzemplarz?</h3>
+                                    <p className="text-gray-600 mb-6">
+                                        Czy na pewno chcesz usunąć egzemplarz o ID {deleteConfirmItem}?
+                                    </p>
+                                    <div className="flex gap-3 justify-center">
+                                        <button
+                                            className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                                            onClick={() => handleDeleteBookItem(deleteConfirmItem)}
+                                        >
+                                            Usuń
+                                        </button>
+                                        <button
+                                            className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                            onClick={() => setDeleteConfirmItem(null)}
+                                        >
+                                            Anuluj
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -858,156 +823,122 @@ export function BookManagement({token}: Props) {
             )}
 
             {/* Sekcja zarządzania kategoriami */}
-            <div
-                style={{
-                    marginTop: "2rem",
-                    padding: "1rem",
-                    backgroundColor: "var(--bg-secondary)",
-                    borderRadius: "4px",
-                    border: "1px solid var(--border-color)",
-                }}
-            >
-                <h3>Zarządzanie Kategoriami</h3>
+            <div className="mt-12 p-8 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl border border-emerald-200 shadow-lg">
+                <h3 className="text-3xl font-bold text-gray-900 mb-8">Zarządzanie Kategoriami</h3>
 
                 {/* Formularz dodawania/edycji kategorii */}
                 {(isAddingCategory || editingCategoryId) && (
-                    <div
-                        style={{
-                            marginBottom: "2rem",
-                            padding: "1rem",
-                            backgroundColor: "var(--bg-primary)",
-                            borderRadius: "4px",
-                            border: "1px solid var(--border-color)",
-                        }}
-                    >
-                        <h4>{editingCategoryId ? "Edytuj kategorię" : "Dodaj kategorię"}</h4>
+                    <div className="mb-8 p-6 bg-white rounded-xl border border-emerald-200 shadow">
+                        <h4 className="text-2xl font-bold text-gray-900 mb-6">{editingCategoryId ? "Edytuj kategorię" : "Dodaj kategorię"}</h4>
                         {categoryFormError && (
-                            <div style={{color: "#ff6b6b", marginBottom: "0.5rem"}}>
-                                {categoryFormError}
+                            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-red-700">{categoryFormError}</p>
                             </div>
                         )}
-                        <div className="form-group">
-                            <label>Nazwa kategorii</label>
+                        <div className="space-y-2 max-w-md">
+                            <label className="block text-sm font-medium text-gray-700">Nazwa kategorii</label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                                 value={categoryFormData.name}
                                 onChange={(e) =>
-                                    setCategoryFormData({...categoryFormData, name: e.target.value})
+                                    setCategoryFormData({ ...categoryFormData, name: e.target.value })
                                 }
                                 placeholder="np. Fantastyka"
                             />
                         </div>
-                        <div style={{display: "flex", gap: "0.5rem", marginTop: "1rem"}}>
+                        <div className="flex gap-3 mt-8">
                             <button
-                                className="btn btn-primary"
+                                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-colors"
                                 onClick={editingCategoryId ? handleUpdateCategory : handleAddCategory}
                             >
-                                {editingCategoryId ? "Zapisz zmiany" : "Dodaj"}
+                                {editingCategoryId ? "Zapisz zmiany" : "Dodaj kategorię"}
                             </button>
-                            <button className="btn btn-secondary" onClick={cancelCategoryForm}>
+                            <button
+                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                onClick={cancelCategoryForm}
+                            >
                                 Anuluj
                             </button>
                         </div>
                     </div>
                 )}
 
-                <button
-                    className="btn btn-primary"
-                    onClick={() => setIsAddingCategory(true)}
-                    style={{marginBottom: "1rem"}}
-                    disabled={isAddingCategory || editingCategoryId !== null}
-                >
-                    + Dodaj nową kategorię
-                </button>
-
                 {/* Lista kategorii */}
                 {categories.length === 0 ? (
-                    <p style={{color: "#999", fontStyle: "italic"}}>
-                        Brak kategorii. Dodaj pierwszą kategorię.
-                    </p>
+                    <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
+                        <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        <p className="text-gray-500 text-lg">Brak kategorii. Dodaj pierwszą kategorię.</p>
+                    </div>
                 ) : (
-                    <div style={{overflowX: "auto"}}>
-                        <table style={{width: "100%", borderCollapse: "collapse"}}>
-                            <thead>
-                            <tr
-                                style={{
-                                    backgroundColor: "var(--bg-primary)",
-                                    borderBottom: "2px solid var(--border-color)",
-                                }}
-                            >
-                                <th style={{padding: "0.75rem", textAlign: "left"}}>ID</th>
-                                <th style={{padding: "0.75rem", textAlign: "left"}}>Nazwa</th>
-                                <th style={{padding: "0.75rem", textAlign: "center"}}>Akcje</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {categories.map((category) => (
-                                <tr
-                                    key={category.id}
-                                    style={{
-                                        borderBottom: "1px solid var(--border-color)",
-                                    }}
-                                >
-                                    <td style={{padding: "0.75rem"}}>{category.id}</td>
-                                    <td style={{padding: "0.75rem"}}>{category.name}</td>
-                                    <td style={{padding: "0.75rem", textAlign: "center"}}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                gap: "0.5rem",
-                                                justifyContent: "center",
-                                                flexWrap: "wrap",
-                                            }}
-                                        >
-                                            <button
-                                                className="btn btn-secondary"
-                                                onClick={() => startEditCategory(category)}
-                                                style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
-                                            >
-                                                Edytuj
-                                            </button>
-                                            <button
-                                                className="btn btn-danger"
-                                                onClick={() => setDeleteConfirmCategory(category.id)}
-                                                style={{padding: "0.5rem 1rem", fontSize: "0.85rem"}}
-                                            >
-                                                Usuń
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div className="overflow-hidden rounded-xl border border-gray-200 shadow">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gradient-to-r from-emerald-800 to-emerald-900">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">ID</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Nazwa</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">Akcje</th>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                {categories.map((category) => (
+                                    <tr key={category.id} className="hover:bg-emerald-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{category.id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{category.name}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <div className="flex gap-2 justify-center">
+                                                <button
+                                                    className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors font-medium text-sm"
+                                                    onClick={() => startEditCategory(category)}
+                                                >
+                                                    Edytuj
+                                                </button>
+                                                <button
+                                                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm"
+                                                    onClick={() => setDeleteConfirmCategory(category.id)}
+                                                >
+                                                    Usuń
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 
                 {/* Potwierdzenie usunięcia kategorii */}
                 {deleteConfirmCategory !== null && (
-                    <div
-                        style={{
-                            marginTop: "1rem",
-                            padding: "1rem",
-                            backgroundColor: "#2a2a1f",
-                            border: "1px solid #d4a574",
-                            borderRadius: "4px",
-                        }}
-                    >
-                        <p>Czy na pewno chcesz usunąć kategorię o ID {deleteConfirmCategory}?</p>
-                        <div style={{display: "flex", gap: "0.5rem"}}>
-                            <button
-                                className="btn btn-danger"
-                                onClick={() => handleDeleteCategory(deleteConfirmCategory)}
-                            >
-                                Usuń
-                            </button>
-                            <button
-                                className="btn btn-secondary"
-                                onClick={() => setDeleteConfirmCategory(null)}
-                            >
-                                Anuluj
-                            </button>
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+                            <div className="text-center">
+                                <svg className="mx-auto h-12 w-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Usunąć kategorię?</h3>
+                                <p className="text-gray-600 mb-6">
+                                    Czy na pewno chcesz usunąć kategorię o ID {deleteConfirmCategory}?
+                                </p>
+                                <div className="flex gap-3 justify-center">
+                                    <button
+                                        className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                                        onClick={() => handleDeleteCategory(deleteConfirmCategory)}
+                                    >
+                                        Usuń
+                                    </button>
+                                    <button
+                                        className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                        onClick={() => setDeleteConfirmCategory(null)}
+                                    >
+                                        Anuluj
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

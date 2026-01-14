@@ -41,6 +41,10 @@ public class Book {
     @JsonIgnore
     private Set<BookQueue> bookQueues = new HashSet<>();
 
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Review> reviews = new HashSet<>();
+
     public Book() {}
 
     public Book(String title, String author, Integer count) {
@@ -63,4 +67,6 @@ public class Book {
     public void setBookItems(Set<BookItem> bookItems) { this.bookItems = bookItems; }
     public Set<BookQueue> getBookQueues() { return bookQueues; }
     public void setBookQueues(Set<BookQueue> bookQueues) { this.bookQueues = bookQueues; }
+    public Set<Review> getReviews() { return reviews; }
+    public void setReviews(Set<Review> reviews) { this.reviews = reviews; }
 }
