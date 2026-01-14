@@ -1,3 +1,5 @@
 /.idea/
 library.mv.db
 library.trace.db
+frontend/node_modules/
+

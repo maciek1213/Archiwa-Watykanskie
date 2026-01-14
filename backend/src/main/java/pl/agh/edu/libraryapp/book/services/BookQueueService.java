@@ -6,6 +6,7 @@ import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.book.BookQueue;
 import pl.agh.edu.libraryapp.book.repositories.BookQueueRepository;
 import pl.agh.edu.libraryapp.book.exceptions.QueueNotFoundException;
+import pl.agh.edu.libraryapp.notifications.NotificationService;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserRepository;
 
@@ -18,12 +19,14 @@ public class BookQueueService {
     private final BookQueueRepository bookQueueRepository;
     private final BookService bookService;
     private final UserRepository userRepository;
+    private final NotificationService  notificationService;
 
     public BookQueueService(BookQueueRepository bookQueueRepository, BookService bookService,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,  NotificationService notificationService) {
         this.bookQueueRepository = bookQueueRepository;
         this.bookService = bookService;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public BookQueue addToQueue(Long userId, Long bookId) {
@@ -56,7 +59,11 @@ public class BookQueueService {
 
     public List<BookQueue> getQueueByBook(Long bookId) {
         Book book = bookService.getBookById(bookId);
-        return bookQueueRepository.findByBookAndStatusOrderByIdAsc(book, "WAITING");
+        // Zwróć wszystkie wpisy w kolejce (zarówno WAITING jak i NOTIFIED)
+        List<BookQueue> allQueue = bookQueueRepository.findByBookOrderByIdAsc(book);
+        return allQueue.stream()
+                .filter(q -> "WAITING".equals(q.getStatus()) || "NOTIFIED".equals(q.getStatus()))
+                .toList();
     }
 
     public List<BookQueue> getUserQueues(Long userId) {
@@ -73,8 +80,7 @@ public class BookQueueService {
         }
 
         BookQueue nextInLine = queue.get(0);
-        nextInLine.setStatus("NOTIFIED");
-        return bookQueueRepository.save(nextInLine);
+        return nextInLine;
     }
 
     public int getPositionInQueue(Long userId, Long bookId) {
@@ -82,10 +88,10 @@ public class BookQueueService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Book book = bookService.getBookById(bookId);
 
-        List<BookQueue> queue = bookQueueRepository.findByBookAndStatusOrderByIdAsc(book, "WAITING");
+        List<BookQueue> allQueue = getQueueByBook(bookId);
 
-        for (int i = 0; i < queue.size(); i++) {
-            if (queue.get(i).getUser().getId().equals(userId)) {
+        for (int i = 0; i < allQueue.size(); i++) {
+            if (allQueue.get(i).getUser().getId().equals(userId)) {
                 return i + 1; // Position (1-based)
             }
         }
@@ -93,13 +99,71 @@ public class BookQueueService {
         return -1; // Not in queue
     }
 
+    @Transactional
     public void notifyAvailableBook(Long bookId) {
-        BookQueue nextInLine = processNextInQueue(bookId);
-        if (nextInLine != null) {
-            // Here you would implement actual notification logic
-            // e.g., send email, push notification, etc.
-            System.out.println("Notifying user: " + nextInLine.getUser().getEmail() +
-                    " that book '" + nextInLine.getBook().getTitle() + "' is available");
+        List<BookQueue> queue = getQueueByBook(bookId);
+        
+        if (queue.isEmpty()) {
+            return;
         }
+        
+        BookQueue nextInLine = queue.get(0);
+        // Zmień status na NOTIFIED ale nie usuwaj z kolejki
+        nextInLine.setStatus("NOTIFIED");
+        bookQueueRepository.save(nextInLine);
+        
+        // Wyślij powiadomienie
+        notificationService.addBookAvailableNotification(
+                nextInLine.getUser(),
+                nextInLine.getBook()
+        );
+    }
+
+    @Transactional
+    public void removeUserFromNotifiedQueue(Long userId, Long bookId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Book book = bookService.getBookById(bookId);
+        
+        // Znajdź i usuń wpis z kolejki dla tego użytkownika i książki
+        List<BookQueue> userQueues = bookQueueRepository.findByUserAndBook(user, book);
+        if (!userQueues.isEmpty()) {
+            bookQueueRepository.deleteAll(userQueues);
+        }
+    }
+
+    public boolean canUserBorrowBook(Long userId, Long bookId) {
+        List<BookQueue> queue = getQueueByBook(bookId);
+        
+        if (queue.isEmpty()) {
+            return true;
+        }
+        
+        // Jeśli jest kolejka, tylko pierwszy może wypożyczyć
+        BookQueue firstInQueue = queue.get(0);
+        return firstInQueue.getUser().getId().equals(userId);
+    }
+
+    @Transactional
+    public void leaveQueue(Long userId, Long bookId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Book book = bookService.getBookById(bookId);
+        
+        List<BookQueue> userQueues = bookQueueRepository.findByUserAndBook(user, book);
+        if (!userQueues.isEmpty()) {
+            bookQueueRepository.deleteAll(userQueues);
+        }
+    }
+
+    public boolean isBookReservedForUser(Long bookId) {
+        List<BookQueue> queue = getQueueByBook(bookId);
+        
+        if (queue.isEmpty()) {
+            return false;
+        }
+        
+        BookQueue firstInQueue = queue.get(0);
+        return "NOTIFIED".equals(firstInQueue.getStatus());
     }
 }
