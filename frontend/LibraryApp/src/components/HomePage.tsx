@@ -13,6 +13,8 @@ interface Book {
     author: string;
     count: number;
     categories: Category[];
+    averageRating?: number;
+    reviewCount?: number;
 }
 
 export function HomePage() {
@@ -280,7 +282,42 @@ export function HomePage() {
                                     <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-amber-700 transition-colors line-clamp-2">
                                         {book.title}
                                     </h3>
-                                    <p className="text-amber-600 font-medium mb-4">{book.author}</p>
+                                    <p className="text-amber-600 font-medium mb-3">{book.author}</p>
+
+                                    {/* Wyświetlanie oceny */}
+                                    {book.reviewCount && book.reviewCount > 0 ? (
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="flex items-center">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <svg
+                                                        key={star}
+                                                        className={`w-4 h-4 ${
+                                                            star <= Math.round(book.averageRating || 0)
+                                                                ? 'text-yellow-400 fill-current'
+                                                                : 'text-gray-300'
+                                                        }`}
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                                        />
+                                                    </svg>
+                                                ))}
+                                            </div>
+                                            <span className="text-sm text-gray-600 font-medium">
+                                                {book.averageRating?.toFixed(1)} ({book.reviewCount} {book.reviewCount === 1 ? 'opinia' : 'opinii'})
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <span className="text-sm text-gray-400">Brak opinii</span>
+                                        </div>
+                                    )}
 
                                     {book.categories && book.categories.length > 0 && (
                                         <div className="mb-6">

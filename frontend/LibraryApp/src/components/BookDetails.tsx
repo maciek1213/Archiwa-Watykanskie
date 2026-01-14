@@ -20,6 +20,27 @@ interface Book {
     author: string;
     count: number;
     categories: Category[];
+    averageRating?: number;
+    reviewCount?: number;
+}
+
+interface Review {
+    id: number;
+    rating: number;
+    description: string | null;
+    user: {
+        id: number;
+        username: string;
+        firstName: string;
+        lastName: string;
+    };
+    createdAt: string;
+}
+
+interface ReviewData {
+    reviews: Review[];
+    averageRating: number;
+    reviewCount: number;
 }
 
 interface QueueUser {
@@ -63,6 +84,14 @@ export function BookDetails({ token }: Props) {
     const [loadingAdminQueue, setLoadingAdminQueue] = useState<boolean>(false);
     const [bookCover, setBookCover] = useState<string | null>(null);
 
+    // Reviews state
+    const [reviewData, setReviewData] = useState<ReviewData | null>(null);
+    const [loadingReviews, setLoadingReviews] = useState(false);
+    const [newRating, setNewRating] = useState<number>(5);
+    const [newDescription, setNewDescription] = useState<string>("");
+    const [submittingReview, setSubmittingReview] = useState(false);
+    const [userReview, setUserReview] = useState<Review | null>(null);
+
     const effectiveToken = token || localStorage.getItem("token");
     const adminUser = isAdmin(effectiveToken);
 
@@ -70,6 +99,7 @@ export function BookDetails({ token }: Props) {
         fetchBookDetails();
         checkQueueStatus();
         checkActiveRental();
+        fetchReviews();
     }, [id]);
 
     useEffect(() => {
@@ -357,6 +387,110 @@ export function BookDetails({ token }: Props) {
         }
     };
 
+    const fetchReviews = async () => {
+        if (!id) return;
+
+        try {
+            setLoadingReviews(true);
+            const response = await axios.get<ReviewData>(
+                `http://localhost:8080/book/${id}/reviews`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${effectiveToken}`,
+                    },
+                }
+            );
+            setReviewData(response.data);
+
+            // Check if current user has already reviewed
+            const userId = getUserId(effectiveToken);
+            if (userId) {
+                const currentUserReview = response.data.reviews.find(
+                    (r) => r.user.id === userId
+                );
+                setUserReview(currentUserReview || null);
+            }
+        } catch (err) {
+            console.error("Nie udało się pobrać opinii", err);
+        } finally {
+            setLoadingReviews(false);
+        }
+    };
+
+    const handleSubmitReview = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!id) return;
+
+        try {
+            setSubmittingReview(true);
+            await axios.post(
+                `http://localhost:8080/book/${id}/reviews`,
+                {
+                    rating: newRating,
+                    description: newDescription.trim() || null,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${effectiveToken}`,
+                    },
+                }
+            );
+
+            alert("Opinia została dodana!");
+            setNewRating(5);
+            setNewDescription("");
+            await fetchReviews();
+            await fetchBookDetails(); // Refresh book data to update average rating
+        } catch (err: any) {
+            let errorMessage = "Nie udało się dodać opinii";
+            if (err.response?.status === 409) {
+                errorMessage = "Już dodałeś opinię do tej książki";
+            } else if (err.response?.data) {
+                if (typeof err.response.data === "string") {
+                    errorMessage = err.response.data;
+                }
+            }
+            alert(errorMessage);
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
+
+    const handleDeleteReview = async (reviewId: number) => {
+        if (!id) return;
+
+        const confirmed = window.confirm("Czy na pewno chcesz usunąć tę opinię?");
+        if (!confirmed) return;
+
+        try {
+            await axios.delete(
+                `http://localhost:8080/book/${id}/reviews/${reviewId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${effectiveToken}`,
+                    },
+                }
+            );
+
+            alert("Opinia została usunięta!");
+            await fetchReviews();
+            await fetchBookDetails(); // Refresh book data to update average rating
+        } catch (err: any) {
+            let errorMessage = "Nie udało się usunąć opinii";
+            if (err.response?.status === 403) {
+                errorMessage = "Nie masz uprawnień do usunięcia tej opinii";
+            } else if (err.response?.status === 404) {
+                errorMessage = "Opinia nie została znaleziona";
+            } else if (err.response?.data) {
+                if (typeof err.response.data === "string") {
+                    errorMessage = err.response.data;
+                }
+            }
+            alert(errorMessage);
+        }
+    };
+
     const toggleAdminQueue = () => {
         if (!showAdminQueue) {
             fetchAdminQueue();
@@ -463,7 +597,45 @@ export function BookDetails({ token }: Props) {
                         <div className="lg:col-span-2">
                             <div className="mb-8">
                                 <h1 className="text-4xl font-bold text-gray-900 mb-2">{book.title}</h1>
-                                <h2 className="text-2xl text-amber-700 font-medium mb-6">{book.author}</h2>
+                                <h2 className="text-2xl text-amber-700 font-medium mb-4">{book.author}</h2>
+
+                                {/* Wyświetlanie średniej oceny */}
+                                {reviewData && reviewData.reviewCount > 0 ? (
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="flex items-center">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <svg
+                                                    key={star}
+                                                    className={`w-6 h-6 ${
+                                                        star <= Math.round(reviewData.averageRating)
+                                                            ? 'text-yellow-400 fill-current'
+                                                            : 'text-gray-300'
+                                                    }`}
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                                    />
+                                                </svg>
+                                            ))}
+                                        </div>
+                                        <span className="text-xl font-semibold text-gray-700">
+                                            {reviewData.averageRating.toFixed(1)} / 5
+                                        </span>
+                                        <span className="text-gray-500">
+                                            ({reviewData.reviewCount} {reviewData.reviewCount === 1 ? 'opinia' : 'opinii'})
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="mb-6">
+                                        <span className="text-gray-500">Brak opinii</span>
+                                    </div>
+                                )}
 
                                 {/* Kategorie */}
                                 {book.categories && book.categories.length > 0 && (
@@ -758,6 +930,183 @@ export function BookDetails({ token }: Props) {
                                             ))}
                                             </tbody>
                                         </table>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Sekcja opinii */}
+                            <div className="mb-8">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-6">Opinie czytelników</h3>
+
+                                {/* Formularz dodawania opinii */}
+                                {!userReview ? (
+                                    <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl p-6 mb-8 border border-amber-200">
+                                        <h4 className="text-xl font-semibold text-gray-900 mb-4">Dodaj swoją opinię</h4>
+                                        <form onSubmit={handleSubmitReview}>
+                                            <div className="mb-4">
+                                                <label className="block text-gray-700 font-medium mb-2">
+                                                    Ocena:
+                                                </label>
+                                                <div className="flex items-center gap-2">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <button
+                                                            key={star}
+                                                            type="button"
+                                                            onClick={() => setNewRating(star)}
+                                                            className="focus:outline-none transition-transform hover:scale-110"
+                                                        >
+                                                            <svg
+                                                                className={`w-8 h-8 ${
+                                                                    star <= newRating
+                                                                        ? 'text-yellow-400 fill-current'
+                                                                        : 'text-gray-300'
+                                                                }`}
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    ))}
+                                                    <span className="ml-2 text-lg font-semibold text-gray-700">
+                                                        {newRating} / 5
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-4">
+                                                <label className="block text-gray-700 font-medium mb-2">
+                                                    Opis (opcjonalnie):
+                                                </label>
+                                                <textarea
+                                                    value={newDescription}
+                                                    onChange={(e) => setNewDescription(e.target.value)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                                    rows={4}
+                                                    placeholder="Podziel się swoją opinią o książce..."
+                                                    maxLength={1000}
+                                                />
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    {newDescription.length} / 1000 znaków
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={submittingReview}
+                                                className="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {submittingReview ? 'Dodawanie...' : 'Dodaj opinię'}
+                                            </button>
+                                        </form>
+                                    </div>
+                                ) : (
+                                    <div className="bg-green-50 rounded-xl p-6 mb-8 border border-green-200">
+                                        <p className="text-green-800 font-medium">
+                                            ✓ Dodałeś już opinię do tej książki
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Lista opinii */}
+                                {loadingReviews ? (
+                                    <div className="flex justify-center py-8">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+                                    </div>
+                                ) : reviewData && reviewData.reviews.length > 0 ? (
+                                    <div className="space-y-6">
+                                        {reviewData.reviews.map((review) => {
+                                            const currentUserId = getUserId(effectiveToken);
+                                            const canDelete = adminUser || (currentUserId && review.user.id === currentUserId);
+                                            
+                                            return (
+                                            <div
+                                                key={review.id}
+                                                className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                                            >
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div>
+                                                        <h5 className="font-semibold text-lg text-gray-900">
+                                                            {review.user.firstName} {review.user.lastName}
+                                                        </h5>
+                                                        <p className="text-sm text-gray-500">
+                                                            @{review.user.username}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex items-center">
+                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                    <svg
+                                                                        key={star}
+                                                                        className={`w-5 h-5 ${
+                                                                            star <= review.rating
+                                                                                ? 'text-yellow-400 fill-current'
+                                                                                : 'text-gray-300'
+                                                                        }`}
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        viewBox="0 0 24 24"
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            strokeWidth={2}
+                                                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                                                        />
+                                                                    </svg>
+                                                                ))}
+                                                            </div>
+                                                            <span className="font-semibold text-gray-700">
+                                                                {review.rating}/5
+                                                            </span>
+                                                        </div>
+                                                        {canDelete && (
+                                                            <button
+                                                                onClick={() => handleDeleteReview(review.id)}
+                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                title="Usuń opinię"
+                                                            >
+                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {review.description && (
+                                                    <p className="text-gray-700 mb-3 leading-relaxed">
+                                                        {review.description}
+                                                    </p>
+                                                )}
+
+                                                <p className="text-sm text-gray-500">
+                                                    {new Date(review.createdAt).toLocaleDateString('pl-PL', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </p>
+                                            </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                                        <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                        </svg>
+                                        <p className="text-gray-600 text-lg">Brak opinii</p>
+                                        <p className="text-gray-500 mt-2">Bądź pierwszym, który oceni tę książkę!</p>
                                     </div>
                                 )}
                             </div>

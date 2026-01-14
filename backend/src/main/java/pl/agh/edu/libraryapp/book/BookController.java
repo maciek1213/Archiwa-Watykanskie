@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.agh.edu.libraryapp.book.services.BookItemService;
 import pl.agh.edu.libraryapp.book.services.BookService;
+import pl.agh.edu.libraryapp.book.services.ReviewService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,10 +16,12 @@ public class BookController {
 
     private final BookService bookService;
     private final BookItemService bookItemService;
+    private final ReviewService reviewService;
 
-    public BookController(BookService bookService, BookItemService bookItemService) {
+    public BookController(BookService bookService, BookItemService bookItemService, ReviewService reviewService) {
         this.bookService = bookService;
         this.bookItemService = bookItemService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping
@@ -90,6 +93,8 @@ public class BookController {
         dto.setAuthor(book.getAuthor());
         dto.setCount(book.getCount());
         dto.setCategories(book.getCategories());
+        dto.setAverageRating(reviewService.getAverageRating(book.getId()));
+        dto.setReviewCount(reviewService.getReviewCount(book.getId()));
         return dto;
     }
 }
