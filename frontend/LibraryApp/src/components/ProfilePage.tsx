@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { isAdmin, getUserId } from "../utils/tokenUtils.ts";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { BookManagement } from "./BookManagement.tsx";
 
 interface UserData {
   id: number;
@@ -28,42 +27,6 @@ interface AdminUser {
   enabled?: boolean;
 }
 
-interface BookItem {
-  id: number;
-  isbn: string;
-  isAvailable: boolean;
-  book?: {
-    id: number;
-    title: string;
-    author: string;
-  };
-}
-
-interface Rental {
-  id: number;
-  bookItem?: BookItem;
-  status: string;
-  startDate: string;
-  endDate: string;
-}
-
-interface BookQueue {
-  id: number;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
-  book: {
-    id: number;
-    title: string;
-    author: string;
-  };
-  status: string;
-}
-
 interface Props {
   token: string | null;
 }
@@ -76,11 +39,6 @@ export function ProfilePage({ token }: Props) {
   const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
-  const [rentals, setRentals] = useState<Rental[]>([]);
-  const [loadingRentals, setLoadingRentals] = useState(false);
-  const [bookQueues, setBookQueues] = useState<BookQueue[]>([]);
-  const [loadingQueues, setLoadingQueues] = useState(false);
-  const [queuePositions, setQueuePositions] = useState<{ [key: number]: number }>({});
 
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -142,112 +100,7 @@ export function ProfilePage({ token }: Props) {
     };
 
     fetchUserData();
-    fetchUserRentals();
-    fetchUserQueues();
   }, [navigate]);
-
-  const fetchUserRentals = async () => {
-    try {
-      const currentToken = token || localStorage.getItem("token");
-      const userId = getUserId(currentToken);
-      if (!userId) return;
-
-      setLoadingRentals(true);
-      const response = await axios.get<Rental[]>(
-        `http://localhost:8080/rentals/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${currentToken}`,
-          },
-        }
-      );
-      setRentals(response.data);
-    } catch (err) {
-      console.error("Nie udało się pobrać wypożyczeń", err);
-    } finally {
-      setLoadingRentals(false);
-    }
-  };
-
-  const fetchUserQueues = async () => {
-    try {
-      const currentToken = token || localStorage.getItem("token");
-      const userId = getUserId(currentToken);
-      if (!userId) return;
-
-      setLoadingQueues(true);
-      const response = await axios.get<BookQueue[]>(
-        `http://localhost:8080/queue/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${currentToken}`,
-          },
-        }
-      );
-      setBookQueues(response.data);
-
-      const positions: { [key: number]: number } = {};
-      for (const queue of response.data) {
-        try {
-          const posResponse = await axios.get<number>(
-            `http://localhost:8080/queue/book/${queue.book.id}/position`,
-            {
-              params: { userId },
-              headers: {
-                Authorization: `Bearer ${currentToken}`,
-              },
-            }
-          );
-          positions[queue.book.id] = posResponse.data;
-        } catch (err) {
-          console.error(`Nie udało się pobrać pozycji dla książki ${queue.book.id}`, err);
-        }
-      }
-      setQueuePositions(positions);
-    } catch (err) {
-      console.error("Nie udało się pobrać rezerwacji", err);
-    } finally {
-      setLoadingQueues(false);
-    }
-  };
-
-  const handleLeaveQueue = async (bookId: number) => {
-    if (!window.confirm("Czy na pewno chcesz opuścić kolejkę?")) {
-      return;
-    }
-
-    try {
-      const currentToken = token || localStorage.getItem("token");
-      await axios.delete(`http://localhost:8080/queue/leave`, {
-        params: { bookId },
-        headers: {
-          Authorization: `Bearer ${currentToken}`,
-        },
-      });
-      alert("Opuszczono kolejkę");
-      fetchUserQueues();
-    } catch (err) {
-      alert("Nie udało się opuścić kolejki");
-    }
-  };
-
-  const handleReturnBook = async (rentalId: number) => {
-    try {
-      await axios.post(
-        `http://localhost:8080/rentals/return/${rentalId}`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${effectiveToken}`,
-          },
-        }
-      );
-      alert("Książka została zwrócona!");
-      fetchUserRentals();
-    } catch (err) {
-      alert("Nie udało się zwrócić książki");
-    }
-  };
 
   const effectiveToken = token || localStorage.getItem("token");
   const adminUser = isAdmin(effectiveToken);
@@ -521,201 +374,7 @@ export function ProfilePage({ token }: Props) {
 
           <div className="profile-card" style={{ marginTop: "2rem" }}>
             <h3>Moje Wypożyczenia</h3>
-            {loadingRentals ? (
-              <p>Ładowanie wypożyczeń...</p>
-            ) : rentals.length === 0 ? (
-              <p>Nie masz żadnych wypożyczeń.</p>
-            ) : (
-              <div style={{ overflowX: "auto", marginTop: "1rem" }}>
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                  }}
-                >
-                  <thead>
-                    <tr
-                      style={{
-                        backgroundColor: "var(--bg-secondary)",
-                        borderBottom: "2px solid var(--border-color)",
-                      }}
-                    >
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Książka</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Autor</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>ISBN</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Data wypożyczenia</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Data zwrotu</th>
-                      <th style={{ padding: "0.75rem", textAlign: "center" }}>Akcja</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rentals.map((rental) => (
-                      <tr
-                        key={rental.id}
-                        style={{
-                          borderBottom: "1px solid var(--border-color)",
-                        }}
-                      >
-                        <td style={{ padding: "0.75rem" }}>
-                          {rental.bookItem?.book?.title || "Brak danych"}
-                        </td>
-                        <td style={{ padding: "0.75rem" }}>
-                          {rental.bookItem?.book?.author || "Brak danych"}
-                        </td>
-                        <td style={{ padding: "0.75rem" }}>
-                          {rental.bookItem?.isbn || "Brak danych"}
-                        </td>
-                        <td style={{ padding: "0.75rem" }}>
-                          <span
-                            style={{
-                              padding: "0.25rem 0.75rem",
-                              borderRadius: "4px",
-                              backgroundColor:
-                                rental.status === "ACTIVE"
-                                  ? "#28a745"
-                                  : rental.status === "OVERDUE"
-                                  ? "#dc3545"
-                                  : "#6c757d",
-                              color: "white",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {rental.status === "ACTIVE"
-                              ? "Aktywne"
-                              : rental.status === "OVERDUE"
-                              ? "Po terminie"
-                              : rental.status === "RETURNED"
-                              ? "Zwrócone"
-                              : rental.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: "0.75rem" }}>
-                          {new Date(rental.startDate).toLocaleDateString("pl-PL")}
-                        </td>
-                        <td style={{ padding: "0.75rem" }}>
-                          {new Date(rental.endDate).toLocaleDateString("pl-PL")}
-                        </td>
-                        <td style={{ padding: "0.75rem", textAlign: "center" }}>
-                          {rental.status === "ACTIVE" || rental.status === "OVERDUE" ? (
-                            <button
-                              className="btn btn-primary"
-                              onClick={() => handleReturnBook(rental.id)}
-                              style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
-                            >
-                              Zwróć
-                            </button>
-                          ) : (
-                            <span style={{ color: "#999", fontStyle: "italic" }}>-</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          <div className="profile-card" style={{ marginTop: "2rem" }}>
-            <h3>Moje Rezerwacje</h3>
-            {loadingQueues ? (
-              <p>Ładowanie rezerwacji...</p>
-            ) : bookQueues.length === 0 ? (
-              <p>Nie masz żadnych rezerwacji w kolejce.</p>
-            ) : (
-              <div style={{ overflowX: "auto", marginTop: "1rem" }}>
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                  }}
-                >
-                  <thead>
-                    <tr
-                      style={{
-                        backgroundColor: "var(--bg-secondary)",
-                        borderBottom: "2px solid var(--border-color)",
-                      }}
-                    >
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Książka</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Autor</th>
-                      <th style={{ padding: "0.75rem", textAlign: "center" }}>Pozycja w kolejce</th>
-                      <th style={{ padding: "0.75rem", textAlign: "center" }}>Status</th>
-                      <th style={{ padding: "0.75rem", textAlign: "center" }}>Akcje</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookQueues.map((queue) => {
-                      const position = queuePositions[queue.book.id];
-                      return (
-                        <tr
-                          key={queue.id}
-                          style={{
-                            borderBottom: "1px solid var(--border-color)",
-                          }}
-                        >
-                          <td style={{ padding: "0.75rem" }}>
-                            {queue.book.title}
-                          </td>
-                          <td style={{ padding: "0.75rem" }}>
-                            {queue.book.author}
-                          </td>
-                          <td style={{ padding: "0.75rem", textAlign: "center" }}>
-                            <span
-                              style={{
-                                padding: "0.25rem 0.75rem",
-                                borderRadius: "4px",
-                                backgroundColor: position === 1 ? "#28a745" : "#6c757d",
-                                color: "white",
-                                fontSize: "0.85rem",
-                                fontWeight: "bold",
-                              }}
-                            >
-                              {position !== undefined ? position : "..."}
-                            </span>
-                          </td>
-                          <td style={{ padding: "0.75rem", textAlign: "center" }}>
-                            <span
-                              style={{
-                                padding: "0.25rem 0.75rem",
-                                borderRadius: "4px",
-                                backgroundColor:
-                                  queue.status === "NOTIFIED" ? "#ffc107" : "#17a2b8",
-                                color: queue.status === "NOTIFIED" ? "#000" : "white",
-                                fontSize: "0.85rem",
-                              }}
-                            >
-                              {queue.status === "NOTIFIED" ? "Gotowe do wypożyczenia" : "Oczekiwanie"}
-                            </span>
-                          </td>
-                          <td style={{ padding: "0.75rem", textAlign: "center" }}>
-                            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                              {queue.status === "NOTIFIED" && (
-                                <button
-                                  className="btn btn-primary"
-                                  onClick={() => navigate(`/book/${queue.book.id}`)}
-                                  style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
-                                >
-                                  Przejdź do strony książki
-                                </button>
-                              )}
-                              <button
-                                className="btn btn-secondary"
-                                onClick={() => handleLeaveQueue(queue.book.id)}
-                                style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
-                              >
-                                Opuść kolejkę
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <p>Nie masz żadnych aktywnych wypożyczeń.</p>
           </div>
 
           {adminUser && (
@@ -858,9 +517,6 @@ export function ProfilePage({ token }: Props) {
               )}
             </div>
           )}
-            <div>
-                {adminUser && <BookManagement token={effectiveToken} />}
-            </div>
         </>
       )}
     </div>
