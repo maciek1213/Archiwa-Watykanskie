@@ -249,6 +249,25 @@ export function ProfilePage({ token }: Props) {
         }
     };
 
+    const handleExtendRental = async (rentalId: number) => {
+        try {
+            await axios.patch(
+                `http://localhost:8080/rentals/prolong/${rentalId}`,
+                null,
+                {
+                    headers: {
+                        Authorization: `Bearer ${effectiveToken}`,
+                    },
+                }
+            );
+            alert("Wypożyczenie zostało przedłużone!");
+            fetchUserRentals();
+        } catch (err: any) {
+        const errorMessage = err.response?.data || "Wystąpił nieoczekiwany błąd";
+        alert("Błąd: " + errorMessage);
+        }
+    };
+
     const effectiveToken = token || localStorage.getItem("token");
     const adminUser = isAdmin(effectiveToken);
 
@@ -680,12 +699,20 @@ export function ProfilePage({ token }: Props) {
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         {rental.status === "ACTIVE" || rental.status === "OVERDUE" ? (
-                                                            <button
-                                                                className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-colors text-sm"
-                                                                onClick={() => handleReturnBook(rental.id)}
-                                                            >
-                                                                Zwróć
-                                                            </button>
+                                                            <div className="flex justify-center gap-2">
+                                                                <button
+                                                                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-colors text-sm"
+                                                                    onClick={() => handleReturnBook(rental.id)}
+                                                                >
+                                                                    Zwróć
+                                                                </button>
+                                                                <button
+                                                                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-colors text-sm"
+                                                                    onClick={() => handleExtendRental(rental.id)}
+                                                                >
+                                                                    Przedłuż
+                                                                </button>
+                                                            </div>
                                                         ) : (
                                                             <span className="text-gray-400 italic">-</span>
                                                         )}

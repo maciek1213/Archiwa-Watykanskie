@@ -167,6 +167,6 @@ public class BookQueueService {
     }
 
     public boolean isQueueEmpty(Book book) {
-        return bookQueueRepository.existsByBookAndStatus(book, "WAITING");
+        return !bookQueueRepository.existsByBookAndStatus(book, "WAITING");
     }
 }
