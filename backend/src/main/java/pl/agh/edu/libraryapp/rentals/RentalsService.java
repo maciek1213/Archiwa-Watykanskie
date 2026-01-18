@@ -9,10 +9,14 @@ import pl.agh.edu.libraryapp.bookQueue.BookQueueService;
 import pl.agh.edu.libraryapp.book.services.BookService;
 import pl.agh.edu.libraryapp.bookItem.BookItemNotAvailableException;
 import pl.agh.edu.libraryapp.notifications.NotificationService;
+import pl.agh.edu.libraryapp.stats.BookRentalsDTO;
+import pl.agh.edu.libraryapp.stats.BooksBorrowedByUserDTO;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserRepository;
 
+import java.sql.Date;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.List;
 import java.util.Objects;
 
@@ -177,5 +181,19 @@ public class RentalsService {
         } else {
             throw new RentalCantBeProlongedException("Nie można przedłużyć rezerwacji. Ktoś czeka na ten egzemplarz.");
         }
+    }
+
+    public List<BooksBorrowedByUserDTO> getBooksBorrowedPerUser() {
+        return rentalRepository.getBooksBorrowedPerUser();
+    }
+
+    public List<BookRentalsDTO> getTimesRentedPerBook() {
+        return rentalRepository.getTimesRentedPerBook();
+    }
+
+    public List<BookRentalsDTO> getTimesRentedPerBookThisYear() {
+        LocalDate start = LocalDate.now().withDayOfYear(1);
+        LocalDate end = LocalDate.now().withDayOfYear(356);
+        return rentalRepository.getTimesRentedPerBookBetweenDates(start, end);
     }
 }
