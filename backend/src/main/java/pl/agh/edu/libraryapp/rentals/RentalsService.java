@@ -14,6 +14,7 @@ import pl.agh.edu.libraryapp.user.UserRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -120,7 +121,7 @@ public class RentalsService {
         return rental;
     }
 
-    public Rentals extendRental(Long rentalId, int additionalDays) {
+    private Rentals extendRental(Long rentalId, int additionalDays) {
         Rentals rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException("Rental not found"));
 
@@ -155,5 +156,26 @@ public class RentalsService {
 
     public List<Rentals> getOverdueRentals() {
         return rentalRepository.findOverdueRentals(LocalDate.now());
+    }
+
+    @Transactional
+    public void prolongBookReservation(User user, Long bookId) {
+        Book book = bookService.getBookById(bookId);
+
+        Rentals bookRental = rentalRepository.findByUserAndStatus(user, "ACTIVE").stream()
+                .filter(rental -> Objects.equals(rental.getBookItem().getBook().getId(), bookId))
+                .findAny()
+                .orElseThrow(() -> new RentalNotFoundException("Book not found"));
+
+        if(bookRental.isHasBeenProlonged()) {
+            throw new RentalCantBeProlongedException("Nie można przedłużyć rezerwacji. Ta rezerwacja już była przedłużona.");
+        }
+
+        if (bookQueueService.isQueueEmpty(book)) {
+            extendRental(bookRental.getId(), 14);
+            bookRental.setHasBeenProlonged(true);
+        } else {
+            throw new RentalCantBeProlongedException("Nie można przedłużyć rezerwacji. Ktoś czeka na ten egzemplarz.");
+        }
     }
 }

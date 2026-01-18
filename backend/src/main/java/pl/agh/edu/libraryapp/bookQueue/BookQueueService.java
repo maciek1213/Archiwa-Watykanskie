@@ -165,4 +165,8 @@ public class BookQueueService {
         BookQueue firstInQueue = queue.get(0);
         return "NOTIFIED".equals(firstInQueue.getStatus());
     }
+
+    public boolean isQueueEmpty(Book book) {
+        return bookQueueRepository.existsByBookAndStatus(book, "WAITING");
+    }
 }
