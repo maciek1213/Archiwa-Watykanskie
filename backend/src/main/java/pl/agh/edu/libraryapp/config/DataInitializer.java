@@ -21,16 +21,23 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public DataInitializer(RoleRepository roleRepository, UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    private final DatabaseSeederService seederService; // 2. Dodaj pole serwisu
+
+    public DataInitializer(RoleRepository roleRepository, UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, DatabaseSeederService seederService) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.seederService = seederService;
     }
 
     @Override
     public void run(String... args) throws Exception {
         initRoles();
         initAdminUser();
+
+        //generacja danych
+        seederService.seedManualBooks();
+        seederService.seedUsersAndRentals();
     }
 
     private void initRoles() {
