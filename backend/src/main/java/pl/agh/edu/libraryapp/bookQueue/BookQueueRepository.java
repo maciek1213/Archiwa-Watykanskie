@@ -1,4 +1,4 @@
-package pl.agh.edu.libraryapp.book.repositories;
+package pl.agh.edu.libraryapp.bookQueue;
 
 import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.book.BookQueue;

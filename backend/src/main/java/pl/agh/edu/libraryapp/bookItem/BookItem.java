@@ -1,9 +1,12 @@
-package pl.agh.edu.libraryapp.book;
+package pl.agh.edu.libraryapp.bookItem;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import pl.agh.edu.libraryapp.book.Book;
+import pl.agh.edu.libraryapp.rentals.Rentals;
+
 import java.util.HashSet;
 import java.util.Set;
 

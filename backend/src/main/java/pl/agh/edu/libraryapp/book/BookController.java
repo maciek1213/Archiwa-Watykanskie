@@ -3,9 +3,10 @@ package pl.agh.edu.libraryapp.book;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pl.agh.edu.libraryapp.book.services.BookItemService;
+import pl.agh.edu.libraryapp.bookItem.BookItem;
+import pl.agh.edu.libraryapp.bookItem.BookItemService;
 import pl.agh.edu.libraryapp.book.services.BookService;
-import pl.agh.edu.libraryapp.book.services.ReviewService;
+import pl.agh.edu.libraryapp.review.ReviewService;
 
 import java.util.List;
 import java.util.stream.Collectors;

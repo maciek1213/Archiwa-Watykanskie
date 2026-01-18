@@ -1,9 +1,9 @@
-package pl.agh.edu.libraryapp.book;
+package pl.agh.edu.libraryapp.bookQueue;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pl.agh.edu.libraryapp.book.services.BookQueueService;
+import pl.agh.edu.libraryapp.book.BookQueue;
 
 import java.util.List;
 

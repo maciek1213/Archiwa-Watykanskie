@@ -1,10 +1,11 @@
-package pl.agh.edu.libraryapp.book;
+package pl.agh.edu.libraryapp.review;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.user.User;
 
 import java.time.LocalDateTime;

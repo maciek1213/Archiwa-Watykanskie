@@ -1,7 +1,8 @@
-package pl.agh.edu.libraryapp.book;
+package pl.agh.edu.libraryapp.rentals;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import pl.agh.edu.libraryapp.bookItem.BookItem;
 import pl.agh.edu.libraryapp.user.User;
 
 @Entity

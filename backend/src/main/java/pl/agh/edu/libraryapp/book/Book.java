@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import pl.agh.edu.libraryapp.bookItem.BookItem;
+import pl.agh.edu.libraryapp.review.Review;
+
 import java.util.HashSet;
 import java.util.Set;
 

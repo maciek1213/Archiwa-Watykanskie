@@ -1,7 +1,6 @@
-package pl.agh.edu.libraryapp.book.repositories;
+package pl.agh.edu.libraryapp.bookItem;
 
 import pl.agh.edu.libraryapp.book.Book;
-import pl.agh.edu.libraryapp.book.BookItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

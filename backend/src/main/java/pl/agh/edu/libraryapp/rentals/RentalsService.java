@@ -1,13 +1,13 @@
-package pl.agh.edu.libraryapp.book.services;
+package pl.agh.edu.libraryapp.rentals;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
-import pl.agh.edu.libraryapp.book.BookItem;
-import pl.agh.edu.libraryapp.book.Rentals;
-import pl.agh.edu.libraryapp.book.repositories.RentalsRepository;
-import pl.agh.edu.libraryapp.book.exceptions.RentalNotFoundException;
-import pl.agh.edu.libraryapp.book.exceptions.BookItemNotAvailableException;
+import pl.agh.edu.libraryapp.bookItem.BookItem;
+import pl.agh.edu.libraryapp.bookItem.BookItemService;
+import pl.agh.edu.libraryapp.bookQueue.BookQueueService;
+import pl.agh.edu.libraryapp.book.services.BookService;
+import pl.agh.edu.libraryapp.bookItem.BookItemNotAvailableException;
 import pl.agh.edu.libraryapp.notifications.NotificationService;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserRepository;
