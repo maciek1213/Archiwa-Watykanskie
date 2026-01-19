@@ -3,6 +3,7 @@ import { isAdmin, getUserId } from "../utils/tokenUtils.ts";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { BookManagement } from "./BookManagement.tsx";
+import { Statistics } from "./Statistics.tsx";
 
 interface UserData {
     id: number;
@@ -110,7 +111,7 @@ export function ProfilePage({ token }: Props) {
     });
 
     // Admin tabs state
-    const [activeAdminTab, setActiveAdminTab] = useState<'profile' | 'users' | 'books'>('profile');
+    const [activeAdminTab, setActiveAdminTab] = useState<'profile' | 'users' | 'books' | 'statistics'>('profile');
 
     // Calculate pagination for users
     const indexOfLastUser = userCurrentPage * usersPerPage;
@@ -471,6 +472,12 @@ export function ProfilePage({ token }: Props) {
                                         onClick={() => setActiveAdminTab('books')}
                                     >
                                         Zarządzanie książkami
+                                    </button>
+                                    <button
+                                        className={`px-6 py-4 text-lg font-medium whitespace-nowrap ${activeAdminTab === 'statistics' ? 'text-amber-700 border-b-2 border-amber-700' : 'text-gray-500 hover:text-gray-700'}`}
+                                        onClick={() => setActiveAdminTab('statistics')}
+                                    >
+                                        Statystyki
                                     </button>
                                 </div>
                             </div>
@@ -1095,6 +1102,10 @@ export function ProfilePage({ token }: Props) {
                         {/* Books Management Tab */}
                         {adminUser && activeAdminTab === 'books' && (
                             <BookManagement token={effectiveToken} />
+                        )}
+                        {/* Statistics Tab */}
+                        {adminUser && activeAdminTab === 'statistics' && (
+                            <Statistics token={effectiveToken} />
                         )}
                     </>
                 )}
