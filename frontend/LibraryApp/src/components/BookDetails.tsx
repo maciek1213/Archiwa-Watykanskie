@@ -118,10 +118,11 @@ export function BookDetails({ token }: Props) {
             if (!isbn) return;
 
 
-            const response = await axios.get(`https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`);
+            const response = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}&limit=1`);
+            const data = await response.json();
 
-            if (response.status === 200) {
-                setBookCover(`https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`);
+            if (response.status === 200 && data.docs && data.docs[0] && data.docs[0].cover_i) {
+                setBookCover(`https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`);
             }
         } catch (err) {
             // Fallback do innego API jeśli pierwsze nie działa
