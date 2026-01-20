@@ -73,24 +73,19 @@ public class RentalsService {
         return rentalRepository.save(rental);
     }
 
-    @Transactional
+    @Transactional // 1. Zapewnia atomowość operacji
     public Rentals rentBookAuto(Long userId, Long bookId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!bookQueueService.canUserBorrowBook(userId, bookId)) {
-            throw new BookItemNotAvailableException("Książka jest zarezerwowana dla pierwszej osoby w kolejce. Musisz zaczekać w kolejce.");
+            throw new BookItemNotAvailableException("Książka jest zarezerwowana...");
         }
 
-        // Znajdź pierwszy dostępny egzemplarz
-        Book book = bookService.getBookById(bookId);
-        List<BookItem> availableItems = bookItemService.getAvailableBookItemsByBook(bookId);
-        
-        if (availableItems.isEmpty()) {
-            throw new BookItemNotAvailableException("Brak dostępnych egzemplarzy tej książki");
-        }
-
-        BookItem bookItem = availableItems.get(0);
+        BookItem bookItem = bookItemService.getAvailableBookItemsByBook(bookId)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new BookItemNotAvailableException("Brak dostępnych egzemplarzy"));
 
         bookQueueService.removeUserFromNotifiedQueue(userId, bookId);
 
@@ -102,9 +97,9 @@ public class RentalsService {
         rental.setEndDate(LocalDate.now().plusWeeks(2));
 
         bookItemService.markAsRented(bookItem.getId());
-        notificationService.addBookRentedNotification(rental);
+        Rentals savedRental = rentalRepository.save(rental);
 
-        return rentalRepository.save(rental);
+        return savedRental;
     }
 
     @Transactional
