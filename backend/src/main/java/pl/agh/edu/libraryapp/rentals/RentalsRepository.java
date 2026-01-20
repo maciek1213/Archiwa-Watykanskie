@@ -14,6 +14,9 @@ public interface RentalsRepository extends JpaRepository<Rentals, Long> {
     @Query("SELECT r FROM Rentals r JOIN FETCH r.bookItem bi JOIN FETCH bi.book WHERE r.user = :user")
     List<Rentals> findByUser(@Param("user") User user);
     
+    @Query("SELECT r FROM Rentals r JOIN FETCH r.bookItem bi JOIN FETCH bi.book WHERE r.user.id = :userId")
+    List<Rentals> findByUserId(@Param("userId") Long userId);
+    
     List<Rentals> findByUserAndStatus(User user, String status);
 
     @Query("SELECT r FROM Rentals r WHERE r.status = 'ACTIVE' AND r.endDate < :currentDate")

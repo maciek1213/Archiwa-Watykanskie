@@ -73,7 +73,7 @@ export function Statistics({ token }: Props) {
         return Math.max(...data.map(item => item.totalRentals));
     };
 
-    const renderBarChart = (data: BooksBorrowedByUser[] | BookRentals[], type: 'users' | 'books') => {
+    const renderBarChart = (data: BooksBorrowedByUser[] | BookRentals[]) => {
         if (data.length === 0) {
             return (
                 <div className="text-center py-12">
@@ -133,7 +133,6 @@ export function Statistics({ token }: Props) {
         const totalUsers = rentalsPerUser.length;
         const totalBooks = rentalsByBook.length;
         const totalRentalsAllTime = rentalsByBook.reduce((sum, book) => sum + book.totalRentals, 0);
-        const totalRentalsThisYear = rentalsByBookThisYear.reduce((sum, book) => sum + book.totalRentals, 0);
         const averageRentalsPerUser = totalUsers > 0 ? (totalRentalsAllTime / totalUsers).toFixed(1) : '0';
 
         return (
@@ -278,7 +277,7 @@ export function Statistics({ token }: Props) {
                                     Ranking najbardziej aktywnych czytelników w bibliotece
                                 </p>
                             </div>
-                            {renderBarChart(rentalsPerUser, 'users')}
+                            {renderBarChart(rentalsPerUser)}
                         </div>
                     )}
 
@@ -292,7 +291,7 @@ export function Statistics({ token }: Props) {
                                     Ranking książek z największą liczbą wypożyczeń w historii
                                 </p>
                             </div>
-                            {renderBarChart(rentalsByBook, 'books')}
+                            {renderBarChart(rentalsByBook)}
                         </div>
                     )}
 
@@ -306,7 +305,7 @@ export function Statistics({ token }: Props) {
                                     Ranking książek z największą liczbą wypożyczeń w tym roku
                                 </p>
                             </div>
-                            {renderBarChart(rentalsByBookThisYear, 'books')}
+                            {renderBarChart(rentalsByBookThisYear)}
                         </div>
                     )}
                 </div>

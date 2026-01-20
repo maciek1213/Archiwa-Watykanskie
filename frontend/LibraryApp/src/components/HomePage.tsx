@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getUserId } from "../utils/tokenUtils";
 
 interface Category {
     id: number;
@@ -17,12 +18,9 @@ interface Book {
     reviewCount?: number;
 }
 
-// Maksymalna liczba jednoczesnych zapytań do API
 const MAX_CONCURRENT_REQUESTS = 5;
-// Opóźnienie między batchami zapytań (ms)
 const BATCH_DELAY = 100;
 
-// Funkcja do dzielenia tablicy na mniejsze części
 const chunkArray = <T,>(array: T[], size: number): T[][] => {
     const chunks: T[][] = [];
     for (let i = 0; i < array.length; i += size) {
@@ -31,7 +29,6 @@ const chunkArray = <T,>(array: T[], size: number): T[][] => {
     return chunks;
 };
 
-// Cache dla pobranych okładek
 const coverCache: { [key: string]: string } = {};
 
 export function HomePage() {
@@ -43,21 +40,26 @@ export function HomePage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [bookCovers, setBookCovers] = useState<{ [key: number]: string }>({});
     const [coversLoading, setCoversLoading] = useState<{ [key: number]: boolean }>({});
+    const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
+    const [trendingBooks, setTrendingBooks] = useState<Book[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchBooks();
         fetchCategories();
+        fetchRecommendations();
     }, []);
 
     useEffect(() => {
-        if (books.length > 0) {
+        const allBooks = [...books, ...recommendedBooks, ...trendingBooks];
+        if (allBooks.length > 0) {
             fetchBookCovers();
         }
-    }, [books]);
+    }, [books, recommendedBooks, trendingBooks]);
 
     const fetchBookCovers = useCallback(async () => {
-        const booksWithoutCovers = books.filter(
+        const allBooks = [...books, ...recommendedBooks, ...trendingBooks];
+        const booksWithoutCovers = allBooks.filter(
             book => !bookCovers[book.id] && !coverCache[`${book.title}-${book.author}`]
         );
 
@@ -137,7 +139,7 @@ export function HomePage() {
                 });
                 setCoversLoading(prev => ({ ...prev, ...loadingState }));
 
-                // Dodajemy opóźnienie między batchami (opcjonalnie)
+                // Dodajemy opóźnienie między batchami
                 if (i < batches.length - 1) {
                     await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
                 }
@@ -145,7 +147,7 @@ export function HomePage() {
                 console.error('Błąd podczas pobierania batcha okładek:', err);
             }
         }
-    }, [books, bookCovers]);
+    }, [books, recommendedBooks, trendingBooks, bookCovers]);
 
     const fetchBooks = async () => {
         try {
@@ -174,6 +176,10 @@ export function HomePage() {
     const fetchCategories = async () => {
         try {
             const token = localStorage.getItem("token");
+            if (!token) {
+                console.log("Brak tokena - pomijam pobieranie kategorii");
+                return;
+            }
             const response = await axios.get<Category[]>("http://localhost:8080/category", {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -181,7 +187,42 @@ export function HomePage() {
             });
             setCategories(response.data);
         } catch (err) {
-            console.error("Nie udało się pobrać kategorii");
+            console.error("Nie udało się pobrać kategorii", err);
+        }
+    };
+
+    const fetchRecommendations = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        try {
+            const userId = getUserId(token);
+            
+            // Fetch personalized recommendations
+            if (userId) {
+                const recommendedResponse = await axios.get<Book[]>(
+                    `http://localhost:8080/api/recommendations/for-user?userId=${userId}&limit=6`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+                setRecommendedBooks(recommendedResponse.data);
+            }
+
+            // Fetch trending books
+            const trendingResponse = await axios.get<Book[]>(
+                "http://localhost:8080/api/recommendations/trending?limit=5",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            setTrendingBooks(trendingResponse.data);
+        } catch (err) {
+            console.error("Nie udało się pobrać rekomendacji", err);
         }
     };
 
@@ -303,6 +344,150 @@ export function HomePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Sekcje rekomendacji */}
+            {localStorage.getItem("token") && (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    {/* Polecane dla Ciebie */}
+                    {recommendedBooks.length > 0 && (
+                        <div className="mb-12">
+                            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                                Polecane dla Ciebie
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                {recommendedBooks.map((book) => (
+                                    <div
+                                        key={book.id}
+                                        className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:-translate-y-1"
+                                        onClick={() => handleBookClick(book.id)}
+                                    >
+                                        <div className="relative h-40 overflow-hidden">
+                                            {coversLoading[book.id] ? (
+                                                <div className="w-full h-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                                                    <div className="animate-pulse flex flex-col items-center">
+                                                        <svg className="w-10 h-10 text-amber-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            ) : bookCovers[book.id] ? (
+                                                <img
+                                                    src={bookCovers[book.id]}
+                                                    alt={`Okładka książki ${book.title}`}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    loading="lazy"
+                                                    onLoad={() => handleImageLoad(book.id)}
+                                                    onError={() => handleImageError(book.id)}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                                                    <svg className="w-12 h-12 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2 group-hover:text-amber-700 transition-colors">
+                                                {book.title}
+                                            </h3>
+                                            <p className="text-xs text-amber-600 mb-2">{book.author}</p>
+                                            {book.reviewCount && book.reviewCount > 0 && (
+                                                <div className="flex items-center gap-1">
+                                                    <div className="flex items-center">
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                            <svg
+                                                                key={star}
+                                                                className={`w-3 h-3 ${star <= Math.round(book.averageRating || 0)
+                                                                    ? 'text-yellow-400 fill-current'
+                                                                    : 'text-gray-300'
+                                                                }`}
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                                                />
+                                                            </svg>
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-xs text-gray-600">{book.averageRating?.toFixed(1)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Często wypożyczane */}
+                    {trendingBooks.length > 0 && (
+                        <div className="mb-12">
+                            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                </svg>
+                                Często wypożyczane
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                                {trendingBooks.map((book, index) => (
+                                    <div
+                                        key={book.id}
+                                        className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:-translate-y-1 relative"
+                                        onClick={() => handleBookClick(book.id)}
+                                    >
+                                        <div className="absolute top-2 left-2 z-10">
+                                            <span className="bg-amber-600 text-white font-bold text-sm px-3 py-1 rounded-full shadow-lg">
+                                                #{index + 1}
+                                            </span>
+                                        </div>
+                                        <div className="relative h-40 overflow-hidden">
+                                            {coversLoading[book.id] ? (
+                                                <div className="w-full h-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                                                    <div className="animate-pulse flex flex-col items-center">
+                                                        <svg className="w-10 h-10 text-amber-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            ) : bookCovers[book.id] ? (
+                                                <img
+                                                    src={bookCovers[book.id]}
+                                                    alt={`Okładka książki ${book.title}`}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    loading="lazy"
+                                                    onLoad={() => handleImageLoad(book.id)}
+                                                    onError={() => handleImageError(book.id)}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                                                    <svg className="w-12 h-12 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2 group-hover:text-amber-700 transition-colors">
+                                                {book.title}
+                                            </h3>
+                                            <p className="text-xs text-amber-600">{book.author}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Główna zawartość */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
