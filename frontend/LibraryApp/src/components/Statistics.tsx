@@ -1,19 +1,30 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-interface BooksBorrowedByUser {
-    userId: number;
+interface User {
+    id: number;
     username: string;
     firstName: string;
     lastName: string;
-    totalRentals: number;
+    email: string;
+    phoneNumber: string;
 }
 
-interface BookRentals {
-    bookId: number;
+interface BooksBorrowedByUserDTO {
+    user: User;
+    booksBorrowed: number;
+}
+
+interface Book {
+    id: number;
     title: string;
     author: string;
-    totalRentals: number;
+    count: number;
+}
+
+interface BookRentalsDTO {
+    book: Book;
+    timesRented: number;
 }
 
 interface Props {
@@ -21,9 +32,9 @@ interface Props {
 }
 
 export function Statistics({ token }: Props) {
-    const [rentalsPerUser, setRentalsPerUser] = useState<BooksBorrowedByUser[]>([]);
-    const [rentalsByBook, setRentalsByBook] = useState<BookRentals[]>([]);
-    const [rentalsByBookThisYear, setRentalsByBookThisYear] = useState<BookRentals[]>([]);
+    const [rentalsPerUser, setRentalsPerUser] = useState<BooksBorrowedByUserDTO[]>([]);
+    const [rentalsByBook, setRentalsByBook] = useState<BookRentalsDTO[]>([]);
+    const [rentalsByBookThisYear, setRentalsByBookThisYear] = useState<BookRentalsDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeView, setActiveView] = useState<'users' | 'books-all' | 'books-year'>('users');
@@ -43,13 +54,13 @@ export function Statistics({ token }: Props) {
                 setError(null);
 
                 const [usersResponse, booksResponse, booksYearResponse] = await Promise.all([
-                    axios.get<BooksBorrowedByUser[]>("http://localhost:8080/stats/rentalsPerUser", {
+                    axios.get<BooksBorrowedByUserDTO[]>("http://localhost:8080/stats/rentalsPerUser", {
                         headers: { Authorization: `Bearer ${effectiveToken}` },
                     }),
-                    axios.get<BookRentals[]>("http://localhost:8080/stats/rentalsByBook", {
+                    axios.get<BookRentalsDTO[]>("http://localhost:8080/stats/rentalsByBook", {
                         headers: { Authorization: `Bearer ${effectiveToken}` },
                     }),
-                    axios.get<BookRentals[]>("http://localhost:8080/stats/rentalsByBookThisYear", {
+                    axios.get<BookRentalsDTO[]>("http://localhost:8080/stats/rentalsByBookThisYear", {
                         headers: { Authorization: `Bearer ${effectiveToken}` },
                     }),
                 ]);
@@ -68,12 +79,15 @@ export function Statistics({ token }: Props) {
         fetchStatistics();
     }, [effectiveToken]);
 
-    const getMaxValue = (data: BooksBorrowedByUser[] | BookRentals[]) => {
+    const getMaxValue = (data: BooksBorrowedByUserDTO[] | BookRentalsDTO[]) => {
         if (data.length === 0) return 1;
-        return Math.max(...data.map(item => item.totalRentals));
+        const isUserData = 'booksBorrowed' in data[0];
+        return Math.max(...data.map(item =>
+            isUserData ? (item as BooksBorrowedByUserDTO).booksBorrowed : (item as BookRentalsDTO).timesRented
+        ));
     };
 
-    const renderBarChart = (data: BooksBorrowedByUser[] | BookRentals[]) => {
+    const renderBarChart = (data: BooksBorrowedByUserDTO[] | BookRentalsDTO[]) => {
         if (data.length === 0) {
             return (
                 <div className="text-center py-12">
@@ -86,19 +100,32 @@ export function Statistics({ token }: Props) {
         }
 
         const maxValue = getMaxValue(data);
-        const sortedData = [...data].sort((a, b) => b.totalRentals - a.totalRentals).slice(0, 15);
+        const isUserData = 'booksBorrowed' in data[0];
+        const sortedData = [...data].sort((a, b) => {
+            const aValue = isUserData ? (a as BooksBorrowedByUserDTO).booksBorrowed : (a as BookRentalsDTO).timesRented;
+            const bValue = isUserData ? (b as BooksBorrowedByUserDTO).booksBorrowed : (b as BookRentalsDTO).timesRented;
+            return bValue - aValue;
+        }).slice(0, 15);
 
         return (
             <div className="space-y-4">
                 {sortedData.map((item, index) => {
-                    const percentage = (item.totalRentals / maxValue) * 100;
-                    const isUser = 'username' in item;
+                    const isUser = 'booksBorrowed' in item;
+                    const rentals = isUser
+                        ? (item as BooksBorrowedByUserDTO).booksBorrowed
+                        : (item as BookRentalsDTO).timesRented;
+                    const percentage = (rentals / maxValue) * 100;
+
                     const label = isUser
-                        ? `${item.firstName} ${item.lastName} (@${item.username})`
-                        : `${item.title} - ${item.author}`;
+                        ? `${(item as BooksBorrowedByUserDTO).user.firstName} ${(item as BooksBorrowedByUserDTO).user.lastName} (@${(item as BooksBorrowedByUserDTO).user.username})`
+                        : `${(item as BookRentalsDTO).book.title} - ${(item as BookRentalsDTO).book.author}`;
+
+                    const itemId = isUser
+                        ? (item as BooksBorrowedByUserDTO).user.id
+                        : (item as BookRentalsDTO).book.id;
 
                     return (
-                        <div key={isUser ? item.userId : item.bookId} className="group">
+                        <div key={itemId} className="group">
                             <div className="flex justify-between items-center mb-2">
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                     <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -107,7 +134,7 @@ export function Statistics({ token }: Props) {
                                     <span className="text-gray-900 font-medium truncate">{label}</span>
                                 </div>
                                 <span className="ml-4 flex-shrink-0 px-4 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full font-bold text-sm">
-                                    {item.totalRentals}
+                                    {rentals}
                                 </span>
                             </div>
                             <div className="h-10 bg-gray-100 rounded-xl overflow-hidden">
@@ -117,7 +144,7 @@ export function Statistics({ token }: Props) {
                                 >
                                     {percentage > 15 && (
                                         <span className="text-white font-semibold text-sm">
-                                            {item.totalRentals} {item.totalRentals === 1 ? 'wypożyczenie' : 'wypożyczeń'}
+                                            {rentals} {rentals === 1 ? 'wypożyczenie' : 'wypożyczeń'}
                                         </span>
                                     )}
                                 </div>
@@ -132,7 +159,7 @@ export function Statistics({ token }: Props) {
     const renderSummaryCards = () => {
         const totalUsers = rentalsPerUser.length;
         const totalBooks = rentalsByBook.length;
-        const totalRentalsAllTime = rentalsByBook.reduce((sum, book) => sum + book.totalRentals, 0);
+        const totalRentalsAllTime = rentalsByBook.reduce((sum, item) => sum + item.timesRented, 0);
         const averageRentalsPerUser = totalUsers > 0 ? (totalRentalsAllTime / totalUsers).toFixed(1) : '0';
 
         return (
