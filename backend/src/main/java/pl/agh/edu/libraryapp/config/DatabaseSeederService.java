@@ -347,7 +347,7 @@ public class DatabaseSeederService {
             User user = new User();
             user.setUsername("user" + i);
             user.setPassword(passwordEncoder.encode("password" + i));
-            user.setEmail("user" + i + "@library.com");
+            user.setEmail("user" + i + "@example.com");
             user.setFirstName(faker.name().firstName());
             user.setLastName(faker.name().lastName());
             user.setPhoneNumber(faker.phoneNumber().cellPhone());
