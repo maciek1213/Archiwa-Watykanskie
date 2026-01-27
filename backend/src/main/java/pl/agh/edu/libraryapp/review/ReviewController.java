@@ -1,10 +1,9 @@
-package pl.agh.edu.libraryapp.book;
+package pl.agh.edu.libraryapp.review;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import pl.agh.edu.libraryapp.book.services.ReviewService;
 import pl.agh.edu.libraryapp.user.User;
 
 import java.util.HashMap;

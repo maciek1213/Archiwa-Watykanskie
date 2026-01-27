@@ -1,7 +1,7 @@
 package pl.agh.edu.libraryapp.user;
 
 import pl.agh.edu.libraryapp.book.BookQueue;
-import pl.agh.edu.libraryapp.book.Rentals;
+import pl.agh.edu.libraryapp.rentals.Rentals;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;

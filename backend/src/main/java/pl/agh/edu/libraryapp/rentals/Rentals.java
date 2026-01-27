@@ -1,7 +1,10 @@
-package pl.agh.edu.libraryapp.book;
+package pl.agh.edu.libraryapp.rentals;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import pl.agh.edu.libraryapp.bookItem.BookItem;
 import pl.agh.edu.libraryapp.user.User;
 
 @Entity
@@ -29,11 +32,17 @@ public class Rentals {
 
     private java.time.LocalDate endDate;
 
+    @Setter
+    @Getter
+    @Column(nullable = false)
+    private boolean hasBeenProlonged;
+
     public Rentals() {}
 
     public Rentals(String status, java.time.LocalDate startDate) {
         this.status = status;
         this.startDate = startDate;
+        this.hasBeenProlonged = false;
     }
 
     //settery i gettery

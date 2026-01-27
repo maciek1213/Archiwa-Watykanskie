@@ -1,12 +1,10 @@
-package pl.agh.edu.libraryapp.book.services;
+package pl.agh.edu.libraryapp.bookItem;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
-import pl.agh.edu.libraryapp.book.BookItem;
-import pl.agh.edu.libraryapp.book.exceptions.BookItemNotFoundException;
 import pl.agh.edu.libraryapp.book.exceptions.BookNotFoundException;
-import pl.agh.edu.libraryapp.book.repositories.BookItemRepository;
+import pl.agh.edu.libraryapp.book.services.BookService;
 import pl.agh.edu.libraryapp.book.repositories.BookRepository;
 
 import java.util.List;

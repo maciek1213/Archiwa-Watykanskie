@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
-import pl.agh.edu.libraryapp.book.Rentals;
+import pl.agh.edu.libraryapp.rentals.Rentals;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserService;
 
@@ -36,7 +36,7 @@ public class NotificationService {
         String message = String.format("Zarezerwowana pozycja '%s' (autor: %s) jest już dostępna do odbioru.",
                 book.getTitle(), book.getAuthor());
 
-        mailService.sendMail(user.getEmail(), title, message);
+        mailService.sendMail(title, message, user.getEmail());
         save(user, title, message);
     }
     @Transactional

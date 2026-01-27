@@ -1,11 +1,10 @@
-package pl.agh.edu.libraryapp.book.services;
+package pl.agh.edu.libraryapp.bookQueue;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.book.BookQueue;
-import pl.agh.edu.libraryapp.book.repositories.BookQueueRepository;
-import pl.agh.edu.libraryapp.book.exceptions.QueueNotFoundException;
+import pl.agh.edu.libraryapp.book.services.BookService;
 import pl.agh.edu.libraryapp.notifications.NotificationService;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserRepository;
@@ -165,5 +164,9 @@ public class BookQueueService {
         
         BookQueue firstInQueue = queue.get(0);
         return "NOTIFIED".equals(firstInQueue.getStatus());
+    }
+
+    public boolean isQueueEmpty(Book book) {
+        return !bookQueueRepository.existsByBookAndStatus(book, "WAITING");
     }
 }

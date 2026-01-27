@@ -1,19 +1,24 @@
-package pl.agh.edu.libraryapp.book.services;
+package pl.agh.edu.libraryapp.rentals;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
-import pl.agh.edu.libraryapp.book.BookItem;
-import pl.agh.edu.libraryapp.book.Rentals;
-import pl.agh.edu.libraryapp.book.repositories.RentalsRepository;
-import pl.agh.edu.libraryapp.book.exceptions.RentalNotFoundException;
-import pl.agh.edu.libraryapp.book.exceptions.BookItemNotAvailableException;
+import pl.agh.edu.libraryapp.bookItem.BookItem;
+import pl.agh.edu.libraryapp.bookItem.BookItemService;
+import pl.agh.edu.libraryapp.bookQueue.BookQueueService;
+import pl.agh.edu.libraryapp.book.services.BookService;
+import pl.agh.edu.libraryapp.bookItem.BookItemNotAvailableException;
 import pl.agh.edu.libraryapp.notifications.NotificationService;
+import pl.agh.edu.libraryapp.stats.BookRentalsDTO;
+import pl.agh.edu.libraryapp.stats.BooksBorrowedByUserDTO;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserRepository;
 
+import java.sql.Date;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -68,24 +73,19 @@ public class RentalsService {
         return rentalRepository.save(rental);
     }
 
-    @Transactional
+    @Transactional // 1. Zapewnia atomowość operacji
     public Rentals rentBookAuto(Long userId, Long bookId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!bookQueueService.canUserBorrowBook(userId, bookId)) {
-            throw new BookItemNotAvailableException("Książka jest zarezerwowana dla pierwszej osoby w kolejce. Musisz zaczekać w kolejce.");
+            throw new BookItemNotAvailableException("Książka jest zarezerwowana...");
         }
 
-        // Znajdź pierwszy dostępny egzemplarz
-        Book book = bookService.getBookById(bookId);
-        List<BookItem> availableItems = bookItemService.getAvailableBookItemsByBook(bookId);
-        
-        if (availableItems.isEmpty()) {
-            throw new BookItemNotAvailableException("Brak dostępnych egzemplarzy tej książki");
-        }
-
-        BookItem bookItem = availableItems.get(0);
+        BookItem bookItem = bookItemService.getAvailableBookItemsByBook(bookId)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new BookItemNotAvailableException("Brak dostępnych egzemplarzy"));
 
         bookQueueService.removeUserFromNotifiedQueue(userId, bookId);
 
@@ -97,9 +97,9 @@ public class RentalsService {
         rental.setEndDate(LocalDate.now().plusWeeks(2));
 
         bookItemService.markAsRented(bookItem.getId());
-        notificationService.addBookRentedNotification(rental);
+        Rentals savedRental = rentalRepository.save(rental);
 
-        return rentalRepository.save(rental);
+        return savedRental;
     }
 
     @Transactional
@@ -120,7 +120,7 @@ public class RentalsService {
         return rental;
     }
 
-    public Rentals extendRental(Long rentalId, int additionalDays) {
+    private Rentals extendRental(Long rentalId, int additionalDays) {
         Rentals rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException("Rental not found"));
 
@@ -155,5 +155,40 @@ public class RentalsService {
 
     public List<Rentals> getOverdueRentals() {
         return rentalRepository.findOverdueRentals(LocalDate.now());
+    }
+
+    @Transactional
+    public void prolongBookReservation(User user, Long bookId) {
+        Book book = bookService.getBookById(bookId);
+
+        Rentals bookRental = rentalRepository.findByUserAndStatus(user, "ACTIVE").stream()
+                .filter(rental -> Objects.equals(rental.getBookItem().getBook().getId(), bookId))
+                .findAny()
+                .orElseThrow(() -> new RentalNotFoundException("Book not found"));
+
+        if(bookRental.isHasBeenProlonged()) {
+            throw new RentalCantBeProlongedException("Nie można przedłużyć rezerwacji. Ta rezerwacja już była przedłużona.");
+        }
+
+        if (bookQueueService.isQueueEmpty(book)) {
+            extendRental(bookRental.getId(), 14);
+            bookRental.setHasBeenProlonged(true);
+        } else {
+            throw new RentalCantBeProlongedException("Nie można przedłużyć rezerwacji. Ktoś czeka na ten egzemplarz.");
+        }
+    }
+
+    public List<BooksBorrowedByUserDTO> getBooksBorrowedPerUser() {
+        return rentalRepository.getBooksBorrowedPerUser();
+    }
+
+    public List<BookRentalsDTO> getTimesRentedPerBook() {
+        return rentalRepository.getTimesRentedPerBook();
+    }
+
+    public List<BookRentalsDTO> getTimesRentedPerBookThisYear() {
+        LocalDate start = LocalDate.now().withDayOfYear(1);
+        LocalDate end = LocalDate.now().withDayOfYear(356);
+        return rentalRepository.getTimesRentedPerBookBetweenDates(start, end);
     }
 }

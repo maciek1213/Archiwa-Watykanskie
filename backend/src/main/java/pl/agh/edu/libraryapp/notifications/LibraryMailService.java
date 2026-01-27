@@ -16,8 +16,11 @@ public class LibraryMailService{
         this.mailSender = mailSender;
     }
 
-    public void sendMail(String to, String subject, String body) {
+    public void sendMail(String subject, String body, String to) {
         SimpleMailMessage message = new SimpleMailMessage();
+
+        System.out.println(to);
+        System.out.println(from);
 
         message.setTo(to);
         message.setSubject(subject);

@@ -1,9 +1,12 @@
-package pl.agh.edu.libraryapp.book;
+package pl.agh.edu.libraryapp.rentals;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pl.agh.edu.libraryapp.book.services.RentalsService;
+import pl.agh.edu.libraryapp.user.User;
+
 import java.util.List;
 
 @RestController
@@ -44,5 +47,19 @@ public class RentalsController {
     public ResponseEntity<List<Rentals>> getUserRentals(@PathVariable Long userId) {
         List<Rentals> rentals = rentalsService.getRentalsByUser(userId);
         return ResponseEntity.ok(rentals);
+    }
+
+    @PatchMapping("/prolong/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<String> prolong(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        try {
+            Rentals rental = rentalsService.getRentalById(id);
+            rentalsService.prolongBookReservation(user, rental.getBookItem().getBook().getId());
+            return  ResponseEntity.ok(null);
+        } catch (RentalCantBeProlongedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RentalNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 }

@@ -1,12 +1,10 @@
-package pl.agh.edu.libraryapp.book.services;
+package pl.agh.edu.libraryapp.review;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.agh.edu.libraryapp.book.Book;
-import pl.agh.edu.libraryapp.book.Review;
 import pl.agh.edu.libraryapp.book.exceptions.BookNotFoundException;
 import pl.agh.edu.libraryapp.book.repositories.BookRepository;
-import pl.agh.edu.libraryapp.book.repositories.ReviewRepository;
 import pl.agh.edu.libraryapp.user.User;
 import pl.agh.edu.libraryapp.user.UserNotFoundException;
 import pl.agh.edu.libraryapp.user.UserRepository;

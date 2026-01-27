@@ -1,4 +1,4 @@
-package pl.agh.edu.libraryapp.book.repositories;
+package pl.agh.edu.libraryapp.bookQueue;
 
 import pl.agh.edu.libraryapp.book.Book;
 import pl.agh.edu.libraryapp.book.BookQueue;
@@ -14,4 +14,5 @@ public interface BookQueueRepository extends JpaRepository<BookQueue, Long> {
     List<BookQueue> findByUserAndBook(User user, Book book);
     List<BookQueue> findByBookAndStatusOrderByIdAsc(Book book, String status);
     boolean existsByUserAndBookAndStatus(User user, Book book, String status);
+    boolean existsByBookAndStatus(Book book, String status);
 }
